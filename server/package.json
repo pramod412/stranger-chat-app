@@ -1,0 +1,19 @@
+{
+  "name": "stranger-chat-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node tests/matchmaking.test.js"
+  },
+  "dependencies": {
+    "bad-words": "^3.0.4",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
+  }
+}

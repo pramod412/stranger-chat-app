@@ -1,0 +1,405 @@
+:root {
+  /* Field Guide Color Tokens */
+  --putty-bg: #C7C3B5;
+  --parchment: #F0ECDF;
+  --parchment-card: #F7F5EE;
+  --parchment-dark: #E4DFC8;
+  --ink: #1C1A17;
+  --ink-muted: rgba(28, 26, 23, 0.7);
+  --ink-faint: rgba(28, 26, 23, 0.4);
+  
+  --rust-clay: #A94A34;
+  --rust-clay-hover: #913C28;
+  --sage: #8B9A76;
+  --sage-light: #A7B692;
+  --marker-pink: #DC4C7D;
+
+  /* Theme Mapping Variables (used across all JSX components) */
+  --bg-primary: #C7C3B5;
+  --bg-secondary: #F0ECDF;
+  --bg-card: #F0ECDF;
+  --bg-card-hover: #E8E4D5;
+  --bg-glass: #F7F5EE;
+  --bg-glass-subtle: rgba(28, 26, 23, 0.04);
+
+  --accent-cyan: #A94A34;
+  --accent-blue: #1C1A17;
+  --accent-purple: #8B9A76;
+  --accent-magenta: #DC4C7D;
+  --accent-emerald: #8B9A76;
+  --accent-rose: #A94A34;
+  --accent-amber: #A94A34;
+
+  --gradient-glow: linear-gradient(135deg, #1C1A17 0%, #2A2824 100%);
+  --gradient-accent: linear-gradient(135deg, #A94A34 0%, #913C28 100%);
+  --gradient-danger: linear-gradient(135deg, #A94A34 0%, #832C1B 100%);
+  --gradient-dark: linear-gradient(180deg, #F0ECDF 0%, #E4DFC8 100%);
+  --gradient-card: linear-gradient(135deg, #F7F5EE 0%, #F0ECDF 100%);
+
+  --text-primary: #1C1A17;
+  --text-secondary: rgba(28, 26, 23, 0.75);
+  --text-muted: rgba(28, 26, 23, 0.55);
+  --text-highlight: #1C1A17;
+
+  --border-subtle: #1C1A17;
+  --border-glow: #1C1A17;
+  --border-card: #1C1A17;
+
+  --shadow-sm: 2px 2px 0px #1C1A17;
+  --shadow-md: 4px 4px 0px #1C1A17;
+  --shadow-lg: 6px 6px 0px #1C1A17;
+  --shadow-glow: 3px 3px 0px #1C1A17;
+  --shadow-magenta-glow: 3px 3px 0px #A94A34;
+
+  /* Strict Zero-Radius Everywhere for Field Guide aesthetic */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-full: 0px;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Archivo Black', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-handwritten: 'Caveat', cursive;
+
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.15s ease;
+  --transition-smooth: 0.2s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 0px !important; /* Non-negotiable for Field Guide aesthetic */
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--putty-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.45;
+  /* Blueprint Grid Pattern */
+  background-image: 
+    linear-gradient(to right, rgba(28, 26, 23, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(28, 26, 23, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center center;
+}
+
+/* Custom Scrollbar - Instrument Panel Style */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: var(--parchment-dark);
+  border-left: 1px solid var(--ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rust-clay);
+}
+
+/* Typography Utilities */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+  display: block;
+}
+
+.handwritten-aside {
+  font-family: var(--font-handwritten);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--marker-pink);
+  line-height: 1.1;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+
+.gradient-text {
+  color: var(--ink);
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+}
+
+.gradient-accent-text {
+  color: var(--rust-clay);
+  font-family: var(--font-heading);
+}
+
+/* Glassmorphism / Panels transformed into Field Guide Cards */
+.glass-panel {
+  background: var(--parchment);
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Buttons - Ticket Stubs */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  border: 1px solid var(--ink);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  user-select: none;
+  background: var(--parchment);
+  color: var(--ink);
+}
+.btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+}
+.btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px var(--ink);
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--parchment);
+  border: 2px solid var(--ink);
+  font-weight: 700;
+  box-shadow: var(--shadow-md);
+}
+.btn-primary:hover {
+  background: #33302B;
+  color: #FFFFFF;
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-accent {
+  background: var(--parchment);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+.btn-accent:hover {
+  background: var(--parchment-card);
+  border-color: var(--ink);
+}
+
+.btn-danger {
+  background: #FAF3F0;
+  color: var(--rust-clay);
+  border: 2px solid var(--rust-clay);
+}
+.btn-danger:hover {
+  background: var(--rust-clay);
+  color: #FFFFFF;
+  border-color: var(--rust-clay);
+  box-shadow: 4px 4px 0px var(--ink);
+}
+
+.btn-subtle {
+  background: var(--parchment);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+.btn-subtle:hover {
+  background: var(--parchment-card);
+  color: var(--ink);
+}
+
+.btn-skip {
+  background: var(--rust-clay);
+  color: #FFFFFF;
+  font-weight: 800;
+  padding: 12px 24px;
+  font-size: 0.98rem;
+  border: 2px solid var(--ink);
+  box-shadow: var(--shadow-md);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.btn-skip:hover {
+  background: var(--rust-clay-hover);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Radar & Search Animations - Blueprint Compass Style */
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+.radar-circle {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50% !important;
+  border: 2px dashed var(--ink);
+  animation: radar-pulse 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+.radar-circle-delay {
+  animation-delay: 0.8s;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-slow {
+  animation: spin 12s linear infinite;
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 26, 23, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--parchment);
+  border: 2px solid var(--ink);
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+/* Tag Pills - Map Slugs */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--parchment);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 1px 1px 0px var(--ink);
+  transition: all var(--transition-fast);
+}
+.tag-pill:hover {
+  background: var(--ink);
+  color: var(--parchment);
+  cursor: pointer;
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px var(--ink);
+}
+.tag-pill.active {
+  background: var(--ink);
+  color: var(--parchment);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0px var(--rust-clay);
+}
+
+/* Typing Dots Animation */
+.typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+}
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--rust-clay);
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Status Chips & Badges */
+.badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--parchment-card);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 1px 1px 0px var(--ink);
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--sage);
+  display: inline-block;
+  border: 1px solid var(--ink);
+}
+
+/* Inputs & Form Controls */
+input[type="text"], input[type="number"], textarea, select {
+  background: #FFFFFF !important;
+  color: var(--ink) !important;
+  border: 2px solid var(--ink) !important;
+  box-shadow: 2px 2px 0px var(--ink) !important;
+  font-family: var(--font-sans);
+}
+input[type="text"]:focus, textarea:focus, select:focus {
+  outline: none !important;
+  border-color: var(--rust-clay) !important;
+  box-shadow: 3px 3px 0px var(--rust-clay) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 20px;
+    margin: 12px;
+  }
+}
