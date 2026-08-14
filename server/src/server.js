@@ -42,13 +42,22 @@ const matchmaking = new MatchmakingQueue((match) => {
   if (socket1) socket1.join(room);
   if (socket2) socket2.join(room);
 
+  const user2DisplayName = user2.profile?.name 
+    ? user2.profile.name 
+    : `Stranger #${user2.userId.slice(-4)}`;
+
+  const user1DisplayName = user1.profile?.name 
+    ? user1.profile.name 
+    : `Stranger #${user1.userId.slice(-4)}`;
+
   // Notify User 1
   if (socket1) {
     socket1.emit('match:found', {
       matchId: id,
       room,
       peerId: user2.userId,
-      peerDisplayName: `Stranger #${user2.userId.slice(-4)}`,
+      peerDisplayName: user2DisplayName,
+      peerProfile: user2.profile || null,
       sharedTags,
       isInitiator: true // Used for WebRTC offer initiation
     });
@@ -60,7 +69,8 @@ const matchmaking = new MatchmakingQueue((match) => {
       matchId: id,
       room,
       peerId: user1.userId,
-      peerDisplayName: `Stranger #${user1.userId.slice(-4)}`,
+      peerDisplayName: user1DisplayName,
+      peerProfile: user1.profile || null,
       sharedTags,
       isInitiator: false
     });
@@ -130,7 +140,7 @@ io.on('connection', (socket) => {
   });
 
   // 1. Join matchmaking queue
-  socket.on('queue:join', ({ userId, tags }) => {
+  socket.on('queue:join', ({ userId, tags, profile }) => {
     userSessionId = userId || socket.id;
 
     if (rateLimiter.isBanned(userSessionId)) {
@@ -138,7 +148,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    matchmaking.enqueueUser(socket.id, userSessionId, tags);
+    matchmaking.enqueueUser(socket.id, userSessionId, tags, profile);
     
     // Only inform client of 'searching' if they are actually waiting in queue (not immediately matched)
     if (matchmaking.isUserWaiting(socket.id)) {
@@ -206,7 +216,7 @@ io.on('connection', (socket) => {
   });
 
   // 5. Skip / Next Stranger
-  socket.on('chat:skip', ({ tags } = {}) => {
+  socket.on('chat:skip', ({ tags, profile } = {}) => {
     const rateCheck = rateLimiter.canSkip(socket.id);
     if (!rateCheck.allowed) {
       return socket.emit('chat:warning', { message: rateCheck.reason });
@@ -220,7 +230,7 @@ io.on('connection', (socket) => {
     }
 
     // Re-enqueue requesting user automatically
-    matchmaking.enqueueUser(socket.id, userSessionId, tags || []);
+    matchmaking.enqueueUser(socket.id, userSessionId, tags || [], profile || {});
     if (matchmaking.isUserWaiting(socket.id)) {
       socket.emit('queue:status', { status: 'searching' });
     }

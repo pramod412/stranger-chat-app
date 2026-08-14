@@ -104,6 +104,16 @@ async function runQASuite() {
   }
   recordTest('Matchmaking', 'Multi-user Concurrent Pairing (10 users -> 5 matches)', multiMatches.length === 5);
 
+  // Test A6: Optional Profile Data Passthrough
+  let profileMatches = [];
+  const qProfile = new MatchmakingQueue((m) => profileMatches.push(m));
+  qProfile.enqueueUser('s_prof_1', 'u_prof_1', [], { name: 'Alex', age: '22', city: 'Tokyo', country: 'Japan' });
+  qProfile.enqueueUser('s_prof_2', 'u_prof_2', [], { name: 'Sam', age: '', city: 'London', country: 'UK' });
+  
+  const pMatch = profileMatches[0];
+  const profileValid = pMatch && pMatch.user1.profile?.name === 'Alex' && pMatch.user1.profile?.city === 'Tokyo' && pMatch.user2.profile?.name === 'Sam';
+  recordTest('Matchmaking', 'Optional Profile Payload Retention (Name, Age, City, Country)', profileValid);
+
   // ----------------------------------------------------
   // 3. SECTION B: REAL-TIME MESSAGING & PAYLOADS
   // ----------------------------------------------------
@@ -211,6 +221,7 @@ async function runQASuite() {
   qA1.destroy();
   qInterests.destroy();
   qMulti.destroy();
+  qProfile.destroy();
   qDisc.destroy();
   qBlock.destroy();
   queue.destroy();

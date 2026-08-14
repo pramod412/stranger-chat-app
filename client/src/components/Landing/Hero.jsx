@@ -1,6 +1,7 @@
 import React from 'react';
 import { MessageSquare, Video, Lock, Shield, Zap, Play } from 'lucide-react';
 import { InterestPicker } from './InterestPicker';
+import { ProfileSetup } from './ProfileSetup';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 
@@ -176,6 +177,9 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             <span>Video Chat</span>
           </button>
         </div>
+
+        {/* Optional Stranger Passport / Profile */}
+        <ProfileSetup />
 
         {/* Interest Picker */}
         <InterestPicker tags={tags} setTags={setTags} />

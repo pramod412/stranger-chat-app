@@ -30,7 +30,7 @@ export class MatchmakingQueue {
   /**
    * Add a user to the matchmaking queue
    */
-  enqueueUser(socketId, userId, rawTags = []) {
+  enqueueUser(socketId, userId, rawTags = [], rawProfile = {}) {
     // Ensure user is not already in queue or active match
     this.dequeueUser(socketId);
     this.leaveCurrentMatch(socketId);
@@ -39,10 +39,18 @@ export class MatchmakingQueue {
       ? rawTags.map(t => String(t).trim().toLowerCase()).filter(Boolean)
       : [];
 
+    const profile = typeof rawProfile === 'object' && rawProfile !== null ? {
+      name: typeof rawProfile.name === 'string' ? rawProfile.name.trim().slice(0, 30) : '',
+      age: rawProfile.age ? String(rawProfile.age).trim().slice(0, 3) : '',
+      city: typeof rawProfile.city === 'string' ? rawProfile.city.trim().slice(0, 40) : '',
+      country: typeof rawProfile.country === 'string' ? rawProfile.country.trim().slice(0, 40) : ''
+    } : { name: '', age: '', city: '', country: '' };
+
     const userEntry = {
       socketId,
       userId,
       tags,
+      profile,
       joinedAt: Date.now(),
       fallbackReady: tags.length === 0 // If no tags, ready for general pool immediately
     };

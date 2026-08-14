@@ -24,9 +24,25 @@ export const SocketProvider = ({ children }) => {
   const [stats, setStats] = useState({ onlineUsers: 0, waitingCount: 0, activeMatchesCount: 0 });
   const [notification, setNotification] = useState(null);
   const [tags, setTags] = useState([]);
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nexus_user_profile');
+      return saved ? JSON.parse(saved) : { name: '', age: '', city: '', country: '' };
+    } catch {
+      return { name: '', age: '', city: '', country: '' };
+    }
+  });
 
   const typingTimeoutRef = useRef(null);
   const userId = useRef(getOrCreateUserId()).current;
+
+  const updateUserProfile = (newFields) => {
+    setUserProfile((prev) => {
+      const updated = { ...prev, ...newFields };
+      localStorage.setItem('nexus_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const showNotification = (message, type = 'info') => {
     setNotification({ message, type, id: Date.now() });
@@ -134,13 +150,13 @@ export const SocketProvider = ({ children }) => {
   }, []);
 
   // Actions
-  const startSearch = (customTags = tags) => {
+  const startSearch = (customTags = tags, customProfile = userProfile) => {
     setTags(customTags);
     setMessages([]);
     setMatchState('searching');
     sounds.playSearchStart();
     if (socket) {
-      socket.emit('queue:join', { userId, tags: customTags });
+      socket.emit('queue:join', { userId, tags: customTags, profile: customProfile });
     }
   };
 
@@ -155,7 +171,7 @@ export const SocketProvider = ({ children }) => {
     sounds.playSkip();
     setMatchState('searching');
     setMessages([]);
-    socket.emit('chat:skip', { tags });
+    socket.emit('chat:skip', { tags, profile: userProfile });
   };
 
   const leaveMatch = () => {
@@ -201,6 +217,8 @@ export const SocketProvider = ({ children }) => {
         notification,
         tags,
         setTags,
+        userProfile,
+        updateUserProfile,
         startSearch,
         cancelSearch,
         skipMatch,

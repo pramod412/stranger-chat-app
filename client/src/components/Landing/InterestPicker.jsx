@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Tag, Plus, X, Sparkles } from 'lucide-react';
 
 const POPULAR_TAGS = [
-  'gaming', 'music', 'anime', 'tech', 'movies', 'coding', 
-  'philosophy', 'books', 'travel', 'fitness', 'art', 'memes'
+  'love', 'relationship', 'fun', 'memes', 'dating', 'tiktok',
+  'gaming', 'music', 'anime', 'deep-talks', 'tech', 'movies',
+  'coding', 'vibes', 'travel', 'fitness', 'art', 'philosophy', 'books'
 ];
 
 export const InterestPicker = ({ tags = [], setTags }) => {

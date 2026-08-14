@@ -24,27 +24,42 @@ export const MessageList = () => {
       }}
     >
       {/* Session Start Banner */}
-      {currentMatch && (
-        <div
-          style={{
-            alignSelf: 'center',
-            background: 'var(--parchment-card)',
-            border: '1px solid var(--ink)',
-            boxShadow: '1px 1px 0px var(--ink)',
-            padding: '5px 14px',
-            fontSize: '0.78rem',
-            fontFamily: 'var(--font-mono)',
-            color: 'var(--ink)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            margin: '4px 0 8px 0'
-          }}
-        >
-          <ShieldCheck size={14} color="var(--sage)" />
-          <span>Connected with {currentMatch.peerDisplayName || 'Stranger'}. Say hi!</span>
-        </div>
-      )}
+      {currentMatch && (() => {
+        const peerProfile = currentMatch.peerProfile;
+        const details = [
+          peerProfile?.age ? `${peerProfile.age} yrs` : null,
+          peerProfile?.city,
+          peerProfile?.country
+        ].filter(Boolean).join(' • ');
+
+        return (
+          <div
+            style={{
+              alignSelf: 'center',
+              background: 'var(--parchment-card)',
+              border: '1px solid var(--ink)',
+              boxShadow: '1px 1px 0px var(--ink)',
+              padding: '6px 14px',
+              fontSize: '0.78rem',
+              fontFamily: 'var(--font-mono)',
+              color: 'var(--ink)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              margin: '4px 0 8px 0',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              textAlign: 'center'
+            }}
+          >
+            <ShieldCheck size={14} color="var(--sage)" />
+            <span>
+              Connected with <strong>{currentMatch.peerDisplayName || 'Stranger'}</strong>
+              {details ? ` (${details})` : ''}. Say hi!
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Empty State Prompt */}
       {messages.length === 0 && matchState === 'connected' && (

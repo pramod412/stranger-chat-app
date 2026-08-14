@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Flag, Ban, Video, MessageSquare } from 'lucide-react';
+import { User, Flag, Ban, Video, MessageSquare, MapPin, Calendar } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 
@@ -8,6 +8,8 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
   const { videoMode, setVideoMode } = useWebRTC();
 
   const isConnected = matchState === 'connected' && currentMatch;
+  const peerProfile = currentMatch?.peerProfile;
+  const locationStr = [peerProfile?.city, peerProfile?.country].filter(Boolean).join(', ');
 
   return (
     <div
@@ -51,6 +53,46 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             {isConnected && (
               <span className="badge-live" style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
                 <span className="live-dot" /> Live
+              </span>
+            )}
+
+            {/* Age Badge */}
+            {isConnected && peerProfile?.age && (
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  background: 'var(--parchment)',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--ink)',
+                  padding: '1px 5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+              >
+                <Calendar size={10} color="var(--rust-clay)" /> {peerProfile.age} yrs
+              </span>
+            )}
+
+            {/* Location Badge */}
+            {isConnected && locationStr && (
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  background: 'var(--parchment)',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--ink)',
+                  padding: '1px 5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+              >
+                <MapPin size={10} color="var(--sage)" /> {locationStr}
               </span>
             )}
           </div>
