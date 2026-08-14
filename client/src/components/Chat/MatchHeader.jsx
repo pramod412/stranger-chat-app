@@ -15,16 +15,16 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 20px',
+        padding: '8px 14px',
         borderBottom: '2px solid var(--ink)',
         background: 'var(--parchment-card)',
         zIndex: 10,
-        gap: '10px',
+        gap: '8px',
         flexWrap: 'wrap'
       }}
     >
       {/* Peer info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
         <div
           style={{
             width: '32px',
@@ -35,20 +35,21 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: 'var(--shadow-sm)'
+            boxShadow: 'var(--shadow-sm)',
+            flexShrink: 0
           }}
         >
           <User size={16} />
         </div>
 
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--ink)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {isConnected ? (currentMatch?.peerDisplayName || 'Stranger') : matchState === 'searching' ? 'Searching...' : 'Stranger'}
             </span>
 
             {isConnected && (
-              <span className="badge-live" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
+              <span className="badge-live" style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
                 <span className="live-dot" /> Live
               </span>
             )}
@@ -56,8 +57,8 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
 
           {/* Shared Interests tags */}
           {isConnected && currentMatch?.sharedTags?.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'rgba(28, 26, 23, 0.65)' }}>Shared:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)', color: 'rgba(28, 26, 23, 0.65)' }}>Shared:</span>
               {currentMatch.sharedTags.map((tag, idx) => {
                 const tagLabel = typeof tag === 'string' ? tag : String(tag?.name || tag || idx);
                 return (
@@ -65,8 +66,8 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
                     key={tagLabel + idx}
                     className="tag-pill active"
                     style={{
-                      fontSize: '0.68rem',
-                      padding: '1px 6px',
+                      fontSize: '0.66rem',
+                      padding: '1px 5px',
                       background: 'var(--ink)',
                       color: 'var(--parchment)',
                       boxShadow: '1px 1px 0px var(--rust-clay)'
@@ -83,12 +84,12 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
 
       {/* Action buttons on header (Report & Block) */}
       {isConnected && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
           <button
             type="button"
             onClick={onOpenReport}
             className="btn btn-subtle"
-            style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '5px' }}
+            style={{ padding: '5px 8px', fontSize: '0.74rem', gap: '4px' }}
             title="Report this user"
           >
             <Flag size={13} color="var(--rust-clay)" />
@@ -99,7 +100,7 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             type="button"
             onClick={onOpenBlock}
             className="btn btn-danger"
-            style={{ padding: '5px 10px', fontSize: '0.76rem', gap: '5px' }}
+            style={{ padding: '5px 8px', fontSize: '0.74rem', gap: '4px' }}
             title="Block and disconnect"
           >
             <Ban size={13} />

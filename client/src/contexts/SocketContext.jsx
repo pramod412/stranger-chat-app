@@ -85,6 +85,7 @@ export const SocketProvider = ({ children }) => {
         if (prev.some((m) => m.id === msg.id)) return prev;
         return [...prev, { ...msg, fromMe: true }];
       });
+      sounds.playMessageSent();
     });
 
     s.on('chat:typing', ({ isTyping }) => {
@@ -137,6 +138,7 @@ export const SocketProvider = ({ children }) => {
     setTags(customTags);
     setMessages([]);
     setMatchState('searching');
+    sounds.playSearchStart();
     if (socket) {
       socket.emit('queue:join', { userId, tags: customTags });
     }

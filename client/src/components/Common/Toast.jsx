@@ -13,6 +13,7 @@ export const Toast = () => {
 
   return (
     <div
+      className="toast-container"
       style={{
         position: 'fixed',
         bottom: '80px',

@@ -59,7 +59,7 @@ export const MessageInput = ({ onSkipTrigger }) => {
   return (
     <div
       style={{
-        padding: '12px 20px',
+        padding: '10px 14px',
         borderTop: '2px solid var(--ink)',
         background: 'var(--parchment-card)',
         position: 'relative'
@@ -70,13 +70,15 @@ export const MessageInput = ({ onSkipTrigger }) => {
         <div
           style={{
             position: 'absolute',
-            bottom: '68px',
-            left: '20px',
+            bottom: '62px',
+            left: '14px',
+            maxWidth: 'calc(100vw - 28px)',
             background: 'var(--parchment)',
             border: '2px solid var(--ink)',
-            padding: '8px 12px',
+            padding: '6px 10px',
             display: 'flex',
-            gap: '8px',
+            gap: '6px',
+            flexWrap: 'wrap',
             boxShadow: 'var(--shadow-md)',
             zIndex: 20
           }}
@@ -91,7 +93,7 @@ export const MessageInput = ({ onSkipTrigger }) => {
                 border: 'none',
                 fontSize: '1.2rem',
                 cursor: 'pointer',
-                padding: '2px'
+                padding: '3px'
               }}
             >
               {emoji}
@@ -101,18 +103,19 @@ export const MessageInput = ({ onSkipTrigger }) => {
       )}
 
       {/* Input container */}
-      <form onSubmit={handleSend} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <form onSubmit={handleSend} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <button
           type="button"
           onClick={() => setShowEmojis(!showEmojis)}
           disabled={!isConnected}
           className="btn"
           style={{
-            padding: '8px',
+            padding: '8px 10px',
             cursor: isConnected ? 'pointer' : 'not-allowed',
             opacity: isConnected ? 1 : 0.45,
             background: 'var(--parchment)',
-            border: '1px solid var(--ink)'
+            border: '1px solid var(--ink)',
+            flexShrink: 0
           }}
           title="Insert emoji"
         >
@@ -127,7 +130,8 @@ export const MessageInput = ({ onSkipTrigger }) => {
             background: '#FFFFFF',
             border: '2px solid var(--ink)',
             boxShadow: '2px 2px 0px var(--ink)',
-            padding: '0 12px'
+            padding: '0 10px',
+            minWidth: 0
           }}
         >
           <input
@@ -137,10 +141,10 @@ export const MessageInput = ({ onSkipTrigger }) => {
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             disabled={!isConnected}
-            placeholder={isConnected ? "Type a message... (Press Enter to send, Esc to Skip)" : "Waiting to connect..."}
+            placeholder={isConnected ? "Type a message... (Enter to send)" : "Waiting to connect..."}
             style={{
-              flex: 1,
-              height: '42px',
+              width: '100%',
+              height: '40px',
               background: 'transparent',
               border: 'none',
               boxShadow: 'none',
@@ -157,8 +161,8 @@ export const MessageInput = ({ onSkipTrigger }) => {
           disabled={!isConnected || !text.trim()}
           className="btn"
           style={{
-            height: '44px',
-            padding: '0 18px',
+            height: '42px',
+            padding: '0 14px',
             background: isConnected && text.trim() ? 'var(--ink)' : 'var(--parchment)',
             color: isConnected && text.trim() ? 'var(--parchment)' : 'rgba(28, 26, 23, 0.4)',
             border: '2px solid var(--ink)',
@@ -166,9 +170,10 @@ export const MessageInput = ({ onSkipTrigger }) => {
             cursor: isConnected && text.trim() ? 'pointer' : 'not-allowed',
             fontFamily: 'var(--font-mono)',
             fontWeight: 700,
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
             textTransform: 'uppercase',
-            gap: '6px'
+            gap: '5px',
+            flexShrink: 0
           }}
         >
           <Send size={14} />

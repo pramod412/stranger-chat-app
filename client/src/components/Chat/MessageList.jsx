@@ -15,10 +15,11 @@ export const MessageList = () => {
       style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '16px 20px',
+        WebkitOverflowScrolling: 'touch',
+        padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: '10px',
         background: 'var(--parchment)'
       }}
     >
@@ -74,7 +75,7 @@ export const MessageList = () => {
               display: 'flex',
               flexDirection: 'column',
               alignSelf: isMe ? 'flex-end' : 'flex-start',
-              maxWidth: '78%'
+              maxWidth: 'min(88%, 560px)'
             }}
           >
             {/* Sender Label */}

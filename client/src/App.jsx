@@ -98,9 +98,10 @@ export function App() {
   const isInChatSession = matchState === 'searching' || matchState === 'connected' || matchState === 'partner_disconnected';
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-container">
       {/* Top Navigation Bar */}
       <header
+        className="nav-header"
         style={{
           height: '60px',
           borderBottom: '2px solid var(--ink)',
@@ -126,19 +127,20 @@ export function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: 'var(--shadow-sm)'
+              boxShadow: 'var(--shadow-sm)',
+              flexShrink: 0
             }}
           >
             <MessageSquare size={16} />
           </div>
           <div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: 'var(--ink)', letterSpacing: '0.02em' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1rem, 3.5vw, 1.2rem)', color: 'var(--ink)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
               STRANGER CHAT
             </span>
           </div>
         </div>
 
-        {/* Center Handwritten Aside Moment */}
+        {/* Center Handwritten Aside Moment (auto-hidden on mobile screens) */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span className="handwritten-aside" style={{ fontSize: '1.15rem' }}>
             talk to random strangers online
@@ -150,7 +152,7 @@ export function App() {
             type="button"
             onClick={() => setShowAdmin(true)}
             className="btn btn-subtle"
-            style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
           >
             <Shield size={14} color="var(--rust-clay)" />
             <span>Admin</span>
@@ -159,7 +161,7 @@ export function App() {
       </header>
 
       {/* Main Body */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <ErrorBoundary>
           {matchState === 'banned' ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>

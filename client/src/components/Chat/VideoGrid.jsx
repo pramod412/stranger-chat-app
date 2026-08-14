@@ -34,12 +34,13 @@ export const VideoGrid = () => {
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '12px',
-        padding: '12px',
-        background: 'rgba(10, 14, 23, 0.9)',
-        borderBottom: '1px solid var(--border-card)',
-        minHeight: '260px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+        gap: '8px',
+        padding: '8px 12px',
+        background: 'rgba(10, 14, 23, 0.95)',
+        borderBottom: '2px solid var(--ink)',
+        maxHeight: '35vh',
+        overflow: 'hidden'
       }}
     >
       {/* Remote Stranger Video View */}

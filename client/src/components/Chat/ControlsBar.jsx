@@ -20,27 +20,27 @@ export const ControlsBar = ({ onOpenReport, onOpenBlock }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 20px',
+        padding: '8px 12px',
         borderTop: '2px solid var(--ink)',
         background: 'var(--parchment)',
-        gap: '10px',
+        gap: '6px',
         flexWrap: 'wrap'
       }}
     >
       {/* Left actions: Next / Leave */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <button
           type="button"
           onClick={skipMatch}
           className="btn btn-skip"
           style={{
-            padding: '10px 18px',
-            fontSize: '0.86rem',
-            gap: '8px'
+            padding: '8px 14px',
+            fontSize: '0.82rem',
+            gap: '6px'
           }}
           title="Shortcut: Press [Escape]"
         >
-          <FastForward size={16} />
+          <FastForward size={15} />
           <span>Next (Esc)</span>
         </button>
 
@@ -48,26 +48,26 @@ export const ControlsBar = ({ onOpenReport, onOpenBlock }) => {
           type="button"
           onClick={leaveMatch}
           className="btn btn-subtle"
-          style={{ padding: '10px 14px', fontSize: '0.84rem' }}
+          style={{ padding: '8px 10px', fontSize: '0.8rem', gap: '4px' }}
           title="Leave this chat"
         >
-          <Square size={14} />
+          <Square size={13} />
           <span>Leave</span>
         </button>
       </div>
 
       {/* Right actions: Mode toggle, Sound toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
         {/* Toggle Video/Text mode on the fly */}
         <button
           type="button"
           onClick={() => setVideoMode(!videoMode)}
           className="btn btn-subtle"
-          style={{ padding: '8px 14px', fontSize: '0.8rem', gap: '6px' }}
+          style={{ padding: '8px 10px', fontSize: '0.78rem', gap: '5px' }}
           title={videoMode ? 'Switch to text chat' : 'Start video chat'}
         >
           {videoMode ? <MessageSquare size={14} /> : <Video size={14} />}
-          <span>{videoMode ? 'Switch to Text' : 'Start Video'}</span>
+          <span>{videoMode ? 'Text Mode' : 'Video Mode'}</span>
         </button>
 
         {/* Sound toggle */}
@@ -75,7 +75,7 @@ export const ControlsBar = ({ onOpenReport, onOpenBlock }) => {
           type="button"
           onClick={toggleSound}
           className="btn btn-subtle"
-          style={{ padding: '8px 12px' }}
+          style={{ padding: '8px 10px' }}
           title={isMuted ? 'Unmute sound effects' : 'Mute sound effects'}
         >
           {isMuted ? <VolumeX size={15} color="var(--rust-clay)" /> : <Volume2 size={15} />}

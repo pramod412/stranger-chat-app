@@ -90,7 +90,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
 
       {/* Main Setup Card - Signature Field Guide Box */}
       <div
-        className="glass-panel"
+        className="glass-panel hero-card"
         style={{
           width: '100%',
           maxWidth: '580px',
@@ -101,7 +101,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
           gap: '16px',
           background: 'var(--parchment)',
           border: '2px solid var(--ink)',
-          boxShadow: '6px 6px 0px var(--ink)',
+          boxShadow: 'var(--shadow-lg)',
           textAlign: 'left'
         }}
       >

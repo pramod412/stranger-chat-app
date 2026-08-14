@@ -28,3 +28,8 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+
+
+# md files
+*.md
+

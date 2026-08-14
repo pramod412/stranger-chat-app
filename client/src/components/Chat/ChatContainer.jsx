@@ -13,28 +13,8 @@ export const ChatContainer = ({ onOpenReport, onOpenBlock }) => {
   const { videoMode } = useWebRTC();
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '16px',
-        width: '100%',
-        maxWidth: '1100px',
-        height: 'calc(100vh - 40px)',
-        margin: '0 auto'
-      }}
-    >
-      <div
-        className="glass-panel"
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: 'var(--shadow-lg)'
-        }}
-      >
+    <div className="chat-shell">
+      <div className="glass-panel chat-panel">
         {/* Top Header */}
         <MatchHeader onOpenReport={onOpenReport} onOpenBlock={onOpenBlock} />
 

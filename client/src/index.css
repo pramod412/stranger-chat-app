@@ -389,6 +389,7 @@ input[type="text"], input[type="number"], textarea, select {
   border: 2px solid var(--ink) !important;
   box-shadow: 2px 2px 0px var(--ink) !important;
   font-family: var(--font-sans);
+  font-size: 0.9rem;
 }
 input[type="text"]:focus, textarea:focus, select:focus {
   outline: none !important;
@@ -396,10 +397,130 @@ input[type="text"]:focus, textarea:focus, select:focus {
   box-shadow: 3px 3px 0px var(--rust-clay) !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .modal-content {
-    padding: 20px;
-    margin: 12px;
+/* Touch Friendly Tap Targets */
+button, input, select, textarea, .tag-pill {
+  touch-action: manipulation;
+}
+
+/* Base Responsive Utilities & App Shell */
+.app-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-shell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  width: 100%;
+  max-width: 1100px;
+  height: calc(100vh - 60px);
+  height: calc(100dvh - 60px);
+  margin: 0 auto;
+}
+
+.chat-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .chat-shell {
+    padding: 10px;
   }
 }
+
+@media (max-width: 768px) {
+  /* Prevent iOS Safari zoom on input focus by ensuring 16px min font size */
+  input[type="text"], input[type="number"], textarea, select {
+    font-size: 16px !important;
+  }
+
+  .chat-shell {
+    padding: 0;
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
+  }
+
+  .chat-panel {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: none;
+  }
+
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal-content {
+    padding: 18px 16px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .btn {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
+
+  .btn-skip {
+    padding: 10px 16px;
+    font-size: 0.88rem;
+  }
+
+  .tag-pill {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-header {
+    padding: 0 12px !important;
+    height: 54px !important;
+  }
+
+  .handwritten-aside {
+    display: none !important;
+  }
+
+  .toast-container {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 74px !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  .btn-skip {
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  .hero-card {
+    padding: 16px !important;
+  }
+
+  .radar-circle {
+    width: 110px;
+    height: 110px;
+  }
+}
+
