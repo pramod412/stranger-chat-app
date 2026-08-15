@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MessageSquare, Video, Lock, Shield, Zap, Play } from 'lucide-react';
 import { InterestPicker } from './InterestPicker';
 import { ProfileSetup } from './ProfileSetup';
@@ -16,7 +16,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px 14px 48px 14px',
+        padding: '24px 16px 40px 16px',
         maxWidth: '900px',
         width: '100%',
         margin: '0 auto',
@@ -26,32 +26,22 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
     >
       {/* Live status chips */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <div
-          className="badge-live"
-          style={{
-            background: 'var(--parchment)',
-            border: '1px solid var(--ink)',
-            boxShadow: 'var(--shadow-sm)',
-            padding: '4px 12px',
-            fontFamily: 'var(--font-mono)'
-          }}
-        >
-          <span className="live-dot" />
+        <div className="live-status-pill">
+          <span className="live-dot-pulse" />
           <span>{stats?.onlineUsers ?? 0} {(stats?.onlineUsers === 1) ? 'Person' : 'People'} Online</span>
         </div>
 
         <div
           style={{
-            fontSize: '0.74rem',
-            fontFamily: 'var(--font-mono)',
-            fontWeight: 700,
-            color: 'var(--ink)',
-            background: 'var(--parchment-card)',
-            padding: '4px 12px',
-            border: '1px solid var(--ink)',
-            boxShadow: 'var(--shadow-sm)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em'
+            fontSize: '0.8rem',
+            fontFamily: 'var(--font-sans)',
+            fontWeight: 600,
+            color: 'var(--text-secondary)',
+            background: 'var(--bg-surface-muted)',
+            padding: '5px 14px',
+            border: '1.5px solid var(--border-soft)',
+            borderRadius: 'var(--radius-pill)',
+            boxShadow: 'var(--shadow-sm)'
           }}
         >
           {stats?.activeMatchesCount || 0} Active {(stats?.activeMatchesCount === 1) ? 'Chat' : 'Chats'}
@@ -60,16 +50,16 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
 
       {/* Hero Title */}
       <div style={{ marginBottom: '8px' }}>
-        <span className="eyebrow" style={{ color: 'var(--rust-clay)', marginBottom: '6px' }}>
+        <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '6px' }}>
           ANONYMOUS 1-ON-1 MATCHMAKING
         </span>
         <h1
           style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4.2rem)',
-            lineHeight: 1.05,
+            fontSize: 'clamp(2.4rem, 6vw, 4rem)',
+            lineHeight: 1.08,
             fontWeight: 900,
             fontFamily: 'var(--font-heading)',
-            color: 'var(--ink)',
+            color: 'var(--text-primary)',
             letterSpacing: '-0.02em',
             textTransform: 'uppercase'
           }}
@@ -80,10 +70,10 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
 
       <p
         style={{
-          fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
-          color: 'rgba(28, 26, 23, 0.8)',
-          maxWidth: '640px',
-          marginBottom: '28px',
+          fontSize: 'clamp(0.95rem, 2vw, 1.12rem)',
+          color: 'var(--text-secondary)',
+          maxWidth: '620px',
+          marginBottom: '24px',
           lineHeight: 1.5,
           fontFamily: 'var(--font-sans)'
         }}
@@ -91,40 +81,45 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         Chat with random people around the world. No login needed. Private and anonymous.
       </p>
 
-      {/* Main Setup Card - Signature Field Guide Box */}
+      {/* Main Setup Card */}
       <div
         className="glass-panel hero-card"
         style={{
           width: '100%',
-          maxWidth: '580px',
+          maxWidth: '560px',
           padding: '24px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '16px',
-          background: 'var(--parchment)',
-          border: '2px solid var(--ink)',
-          boxShadow: 'var(--shadow-lg)',
+          background: 'var(--bg-surface)',
+          border: '2px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-hard)',
           textAlign: 'left'
         }}
       >
-        {/* Card Eyebrow */}
-        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--ink)', paddingBottom: '8px' }}>
-          <span className="eyebrow" style={{ fontSize: '0.72rem' }}>
+        {/* Card Header Eyebrow */}
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid var(--border-soft)', paddingBottom: '8px' }}>
+          <span className="eyebrow" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
             ● SETUP · CHAT MODE
           </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'rgba(28, 26, 23, 0.6)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>
             INSTANT MATCH
           </span>
         </div>
 
-        {/* Mode Selector - Blueprint Segmented Tabs */}
+        {/* Mode Selector - Segmented Control */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '8px',
-            width: '100%'
+            width: '100%',
+            background: 'var(--bg-surface-muted)',
+            padding: '4px',
+            borderRadius: 'var(--radius-md)',
+            border: '1.5px solid var(--border-soft)'
           }}
         >
           <button
@@ -136,17 +131,16 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
               justifyContent: 'center',
               gap: '8px',
               padding: '10px 14px',
-              border: !videoMode ? '2px solid var(--ink)' : '1px solid var(--ink)',
-              background: !videoMode ? 'var(--ink)' : 'var(--parchment-card)',
-              color: !videoMode ? 'var(--parchment)' : 'var(--ink)',
+              border: !videoMode ? '2px solid var(--border)' : '2px solid transparent',
+              borderRadius: 'var(--radius-md)',
+              background: !videoMode ? 'var(--accent)' : 'transparent',
+              color: !videoMode ? 'var(--on-accent)' : 'var(--text-primary)',
               fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.84rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '0.88rem',
               cursor: 'pointer',
-              boxShadow: !videoMode ? '2px 2px 0px var(--rust-clay)' : 'none',
-              transition: 'all 0.1s ease'
+              boxShadow: !videoMode ? 'var(--shadow-sm)' : 'none',
+              transition: 'all 0.15s ease'
             }}
           >
             <MessageSquare size={16} />
@@ -162,17 +156,16 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
               justifyContent: 'center',
               gap: '8px',
               padding: '10px 14px',
-              border: videoMode ? '2px solid var(--ink)' : '1px solid var(--ink)',
-              background: videoMode ? 'var(--ink)' : 'var(--parchment-card)',
-              color: videoMode ? 'var(--parchment)' : 'var(--ink)',
+              border: videoMode ? '2px solid var(--border)' : '2px solid transparent',
+              borderRadius: 'var(--radius-md)',
+              background: videoMode ? 'var(--accent)' : 'transparent',
+              color: videoMode ? 'var(--on-accent)' : 'var(--text-primary)',
               fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.84rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '0.88rem',
               cursor: 'pointer',
-              boxShadow: videoMode ? '2px 2px 0px var(--rust-clay)' : 'none',
-              transition: 'all 0.1s ease'
+              boxShadow: videoMode ? 'var(--shadow-sm)' : 'none',
+              transition: 'all 0.15s ease'
             }}
           >
             <Video size={16} />
@@ -186,24 +179,21 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         {/* Interest Picker */}
         <InterestPicker tags={tags} setTags={setTags} />
 
-        {/* Start Chat CTA Button - Signature Rust-Clay Action */}
+        {/* Start Chat CTA Button */}
         <button
           type="button"
           onClick={onStartChat}
-          className="btn"
+          className="btn btn-primary"
           style={{
             width: '100%',
             padding: '14px 24px',
-            fontSize: '1.05rem',
+            fontSize: '1.02rem',
             fontWeight: 800,
             fontFamily: 'var(--font-heading)',
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
-            background: 'var(--rust-clay)',
-            color: '#FFFFFF',
-            border: '2px solid var(--ink)',
-            boxShadow: '4px 4px 0px var(--ink)',
-            marginTop: '8px',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-hard)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -216,7 +206,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         </button>
       </div>
 
-      {/* Safety & Features Grid - 3 Blueprint Cards */}
+      {/* Safety & Features Grid - Trust Badges */}
       <div
         style={{
           display: 'grid',
@@ -224,7 +214,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
           gap: '14px',
           width: '100%',
           maxWidth: '850px',
-          marginTop: '40px'
+          marginTop: '28px'
         }}
       >
         <div
@@ -235,23 +225,29 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             display: 'flex',
             gap: '12px',
             alignItems: 'flex-start',
-            background: 'var(--parchment)',
+            background: 'var(--bg-surface)',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-sm)'
           }}
         >
           <div
             style={{
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
+              background: 'var(--purple-bg)',
+              color: 'var(--purple)',
               padding: '8px',
-              border: '1px solid var(--ink)'
+              borderRadius: 'var(--radius-md)',
+              border: '1.5px solid var(--border-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
             <Lock size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.9rem', marginBottom: '2px', fontFamily: 'var(--font-heading)' }}>Private by Design</h4>
-            <p style={{ fontSize: '0.8rem', color: 'rgba(28, 26, 23, 0.75)', lineHeight: 1.4 }}>
+            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Private by Design</h4>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               Messages aren't stored after you leave.
             </p>
           </div>
@@ -265,23 +261,29 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             display: 'flex',
             gap: '12px',
             alignItems: 'flex-start',
-            background: 'var(--parchment)',
+            background: 'var(--bg-surface)',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-sm)'
           }}
         >
           <div
             style={{
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
+              background: 'var(--teal-bg)',
+              color: 'var(--teal)',
               padding: '8px',
-              border: '1px solid var(--ink)'
+              borderRadius: 'var(--radius-md)',
+              border: '1.5px solid var(--border-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            <Shield size={18} color="var(--sage)" />
+            <Shield size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.9rem', marginBottom: '2px', fontFamily: 'var(--font-heading)' }}>Safe & Moderated</h4>
-            <p style={{ fontSize: '0.8rem', color: 'rgba(28, 26, 23, 0.75)', lineHeight: 1.4 }}>
+            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Safe & Moderated</h4>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               1-click report and block. Active filters prevent abuse.
             </p>
           </div>
@@ -295,23 +297,29 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             display: 'flex',
             gap: '12px',
             alignItems: 'flex-start',
-            background: 'var(--parchment)',
+            background: 'var(--bg-surface)',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
             boxShadow: 'var(--shadow-sm)'
           }}
         >
           <div
             style={{
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
+              background: 'var(--coral-bg)',
+              color: 'var(--coral)',
               padding: '8px',
-              border: '1px solid var(--ink)'
+              borderRadius: 'var(--radius-md)',
+              border: '1.5px solid var(--border-soft)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            <Zap size={18} color="var(--rust-clay)" />
+            <Zap size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.9rem', marginBottom: '2px', fontFamily: 'var(--font-heading)' }}>Interest Matching</h4>
-            <p style={{ fontSize: '0.8rem', color: 'rgba(28, 26, 23, 0.75)', lineHeight: 1.4 }}>
+            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Interest Matching</h4>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
               Chat with people who share your hobbies.
             </p>
           </div>
@@ -320,3 +328,4 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
     </div>
   );
 };
+export default Hero;

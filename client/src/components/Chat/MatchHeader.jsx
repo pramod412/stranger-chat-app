@@ -1,11 +1,10 @@
 import React from 'react';
-import { User, Flag, Ban, Video, MessageSquare, MapPin, Calendar, Users } from 'lucide-react';
+import { User, Flag, Ban, MapPin, Calendar, Users } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
-import { useWebRTC } from '../../contexts/WebRTCContext';
+import { getTagTheme } from '../../utils/tagColors';
 
 export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
   const { currentMatch, matchState } = useSocket();
-  const { videoMode, setVideoMode } = useWebRTC();
 
   const isConnected = matchState === 'connected' && currentMatch;
   const peerProfile = currentMatch?.peerProfile;
@@ -17,23 +16,24 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '8px 14px',
-        borderBottom: '2px solid var(--ink)',
-        background: 'var(--parchment-card)',
+        padding: '10px 16px',
+        borderBottom: '2px solid var(--border)',
+        background: 'var(--bg-surface)',
         zIndex: 10,
-        gap: '8px',
+        gap: '10px',
         flexWrap: 'wrap'
       }}
     >
       {/* Peer info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
         <div
           style={{
-            width: '32px',
-            height: '32px',
-            background: isConnected ? 'var(--ink)' : 'var(--parchment)',
-            color: isConnected ? 'var(--parchment)' : 'var(--ink)',
-            border: '1px solid var(--ink)',
+            width: '36px',
+            height: '36px',
+            background: isConnected ? 'var(--purple-bg)' : 'var(--bg-surface-muted)',
+            color: isConnected ? 'var(--purple)' : 'var(--text-secondary)',
+            border: '2px solid var(--border)',
+            borderRadius: 'var(--radius-pill)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -41,18 +41,18 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             flexShrink: 0
           }}
         >
-          <User size={16} />
+          <User size={18} />
         </div>
 
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--ink)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {isConnected ? (currentMatch?.peerDisplayName || 'Stranger') : matchState === 'searching' ? 'Searching...' : 'Stranger'}
             </span>
 
             {isConnected && (
-              <span className="badge-live" style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
-                <span className="live-dot" /> Live
+              <span className="live-status-pill" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+                <span className="live-dot-pulse" style={{ width: '6px', height: '6px' }} /> Live
               </span>
             )}
 
@@ -60,19 +60,20 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             {isConnected && peerProfile?.gender && (
               <span
                 style={{
-                  fontSize: '0.66rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  background: 'var(--parchment)',
-                  color: 'var(--ink)',
-                  border: '1px solid var(--ink)',
-                  padding: '1px 5px',
+                  fontSize: '0.72rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  background: 'var(--pink-bg)',
+                  color: 'var(--pink)',
+                  border: '1px solid var(--pink)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '2px 8px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px'
+                  gap: '4px'
                 }}
               >
-                <Users size={10} color="var(--rust-clay)" /> {peerProfile.gender}
+                <Users size={11} /> {peerProfile.gender}
               </span>
             )}
 
@@ -80,19 +81,20 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             {isConnected && peerProfile?.age && (
               <span
                 style={{
-                  fontSize: '0.66rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  background: 'var(--parchment)',
-                  color: 'var(--ink)',
-                  border: '1px solid var(--ink)',
-                  padding: '1px 5px',
+                  fontSize: '0.72rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  background: 'var(--coral-bg)',
+                  color: 'var(--coral)',
+                  border: '1px solid var(--coral)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '2px 8px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px'
+                  gap: '4px'
                 }}
               >
-                <Calendar size={10} color="var(--rust-clay)" /> {peerProfile.age} yrs
+                <Calendar size={11} /> {peerProfile.age} yrs
               </span>
             )}
 
@@ -100,39 +102,43 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             {isConnected && locationStr && (
               <span
                 style={{
-                  fontSize: '0.66rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  background: 'var(--parchment)',
-                  color: 'var(--ink)',
-                  border: '1px solid var(--ink)',
-                  padding: '1px 5px',
+                  fontSize: '0.72rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  background: 'var(--teal-bg)',
+                  color: 'var(--teal)',
+                  border: '1px solid var(--teal)',
+                  borderRadius: 'var(--radius-pill)',
+                  padding: '2px 8px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px'
+                  gap: '4px'
                 }}
               >
-                <MapPin size={10} color="var(--sage)" /> {locationStr}
+                <MapPin size={11} /> {locationStr}
               </span>
             )}
           </div>
 
-          {/* Shared Interests tags */}
+          {/* Shared Interests Tags */}
           {isConnected && currentMatch?.sharedTags?.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)', color: 'rgba(28, 26, 23, 0.65)' }}>Shared:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)' }}>Shared:</span>
               {currentMatch.sharedTags.map((tag, idx) => {
                 const tagLabel = typeof tag === 'string' ? tag : String(tag?.name || tag || idx);
+                const theme = getTagTheme(tagLabel);
                 return (
                   <span
                     key={tagLabel + idx}
-                    className="tag-pill active"
+                    className="tag-pill"
                     style={{
-                      fontSize: '0.66rem',
-                      padding: '1px 5px',
-                      background: 'var(--ink)',
-                      color: 'var(--parchment)',
-                      boxShadow: '1px 1px 0px var(--rust-clay)'
+                      fontSize: '0.72rem',
+                      padding: '2px 8px',
+                      background: theme.bg,
+                      color: theme.color,
+                      border: `1px solid ${theme.color}`,
+                      borderRadius: 'var(--radius-pill)',
+                      fontWeight: 700
                     }}
                   >
                     #{tagLabel}
@@ -146,15 +152,21 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
 
       {/* Action buttons on header (Report & Block) */}
       {isConnected && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
           <button
             type="button"
             onClick={onOpenReport}
             className="btn btn-subtle"
-            style={{ padding: '5px 8px', fontSize: '0.74rem', gap: '4px' }}
+            style={{
+              padding: '8px 14px',
+              minHeight: '44px',
+              fontSize: '0.82rem',
+              gap: '6px',
+              borderRadius: 'var(--radius-md)'
+            }}
             title="Report this user"
           >
-            <Flag size={13} color="var(--rust-clay)" />
+            <Flag size={14} color="var(--text-secondary)" />
             <span>Report</span>
           </button>
 
@@ -162,10 +174,16 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             type="button"
             onClick={onOpenBlock}
             className="btn btn-danger"
-            style={{ padding: '5px 8px', fontSize: '0.74rem', gap: '4px' }}
+            style={{
+              padding: '8px 14px',
+              minHeight: '44px',
+              fontSize: '0.82rem',
+              gap: '6px',
+              borderRadius: 'var(--radius-md)'
+            }}
             title="Block and disconnect"
           >
-            <Ban size={13} />
+            <Ban size={14} />
             <span>Block</span>
           </button>
         </div>
@@ -173,3 +191,4 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
     </div>
   );
 };
+export default MatchHeader;

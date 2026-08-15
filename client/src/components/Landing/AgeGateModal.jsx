@@ -15,11 +15,12 @@ export const AgeGateModal = ({ isOpen, onAccept, onDecline }) => {
         <div style={{ textAlign: 'center', marginBottom: '18px' }}>
           <div
             style={{
-              width: '48px',
-              height: '48px',
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
-              border: '2px solid var(--ink)',
+              width: '52px',
+              height: '52px',
+              background: 'var(--accent)',
+              color: 'var(--on-accent)',
+              border: '2px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
               boxShadow: 'var(--shadow-sm)',
               display: 'flex',
               alignItems: 'center',
@@ -27,38 +28,39 @@ export const AgeGateModal = ({ isOpen, onAccept, onDecline }) => {
               margin: '0 auto 12px auto'
             }}
           >
-            <ShieldCheck size={24} color="var(--parchment)" />
+            <ShieldCheck size={26} color="var(--on-accent)" />
           </div>
           <h2 style={{ fontSize: '1.35rem', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
-            Welcome! Please confirm your age
+            Confirm Your Age
           </h2>
-          <p style={{ color: 'rgba(28, 26, 23, 0.75)', fontSize: '0.86rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
             To keep our community safe, please confirm you are an adult before chatting.
           </p>
         </div>
 
         <div
           style={{
-            background: 'var(--parchment-card)',
+            background: 'var(--bg-surface-muted)',
             padding: '14px',
-            border: '1px solid var(--ink)',
-            boxShadow: '1px 1px 0px var(--ink)',
+            border: '1.5px solid var(--border-soft)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: '18px',
-            fontSize: '0.82rem',
-            color: 'var(--ink)',
+            fontSize: '0.84rem',
+            color: 'var(--text-primary)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: '10px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            <AlertTriangle size={16} color="var(--rust-clay)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <AlertTriangle size={16} color="var(--accent)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <span>
               <strong>Zero tolerance:</strong> Hate speech, harassment, or illicit activities result in immediate permanent bans.
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-            <CheckCircle size={16} color="var(--sage)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <CheckCircle size={16} color="var(--teal)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <span>
               <strong>Privacy first:</strong> Chat logs are not kept after a chat ends.
             </span>
@@ -67,22 +69,20 @@ export const AgeGateModal = ({ isOpen, onAccept, onDecline }) => {
 
         {/* Checkboxes */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.86rem', fontFamily: 'var(--font-mono)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.88rem', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
             <input
               type="checkbox"
               checked={is18Plus}
               onChange={(e) => setIs18Plus(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--rust-clay)', cursor: 'pointer' }}
             />
             <span>I confirm that I am <strong>18 years of age or older</strong>.</span>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.86rem', fontFamily: 'var(--font-mono)' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.88rem', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
             <input
               type="checkbox"
               checked={agreedToRules}
               onChange={(e) => setAgreedToRules(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--rust-clay)', cursor: 'pointer' }}
             />
             <span>I agree to the Community Guidelines & Terms of Service.</span>
           </label>
@@ -101,25 +101,23 @@ export const AgeGateModal = ({ isOpen, onAccept, onDecline }) => {
           <button
             type="button"
             disabled={!canProceed}
-            className="btn"
+            className="btn btn-primary"
             style={{
               flex: 2,
               padding: '10px',
-              background: canProceed ? 'var(--rust-clay)' : 'rgba(28, 26, 23, 0.2)',
-              color: '#FFFFFF',
-              border: '2px solid var(--ink)',
-              boxShadow: canProceed ? '3px 3px 0px var(--ink)' : 'none',
               cursor: canProceed ? 'pointer' : 'not-allowed',
               fontFamily: 'var(--font-heading)',
               textTransform: 'uppercase',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              gap: '6px'
             }}
             onClick={onAccept}
           >
-            Continue <ArrowRight size={15} />
+            <span>Continue</span> <ArrowRight size={15} />
           </button>
         </div>
       </div>
     </div>
   );
 };
+export default AgeGateModal;

@@ -33,17 +33,18 @@ export const ReportModal = ({ isOpen, onClose }) => {
   return (
     <div className="modal-backdrop">
       <div className="modal-content" style={{ maxWidth: '500px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid var(--ink)', paddingBottom: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1.5px solid var(--border-soft)', paddingBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Flag size={18} color="var(--rust-clay)" />
-            <h3 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>
+            <Flag size={18} color="var(--accent)" />
+            <h3 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Report {currentMatch?.peerDisplayName || 'Stranger'}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer' }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', padding: '4px' }}
+            aria-label="Close report modal"
           >
             <X size={18} />
           </button>
@@ -53,74 +54,80 @@ export const ReportModal = ({ isOpen, onClose }) => {
           <div style={{ textAlign: 'center', padding: '24px 10px' }}>
             <div
               style={{
-                width: '44px',
-                height: '44px',
-                background: 'var(--ink)',
-                color: 'var(--parchment)',
-                border: '2px solid var(--ink)',
+                width: '48px',
+                height: '48px',
+                background: 'var(--teal-bg)',
+                color: 'var(--teal)',
+                border: '2px solid var(--teal)',
+                borderRadius: 'var(--radius-pill)',
                 boxShadow: 'var(--shadow-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 12px auto',
-                fontSize: '1.3rem'
+                fontSize: '1.4rem'
               }}
             >
               ✓
             </div>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '6px', fontFamily: 'var(--font-heading)' }}>
+            <h4 style={{ fontSize: '1.15rem', marginBottom: '6px', fontFamily: 'var(--font-heading)' }}>
               Report Received
             </h4>
-            <p style={{ color: 'rgba(28, 26, 23, 0.75)', fontSize: '0.84rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem' }}>
               Thank you for helping keep the community safe. A moderator will review recent messages.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <p style={{ fontSize: '0.82rem', color: 'rgba(28, 26, 23, 0.75)', marginBottom: '12px' }}>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
               Why are you reporting this person? Recent messages will be reviewed by moderators.
             </p>
 
             {/* Category selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px', maxHeight: '200px', overflowY: 'auto' }}>
-              {REPORT_CATEGORIES.map((cat) => (
-                <label
-                  key={cat.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '8px',
-                    padding: '8px 10px',
-                    background: selectedCategory === cat.id ? 'var(--ink)' : 'var(--parchment-card)',
-                    color: selectedCategory === cat.id ? 'var(--parchment)' : 'var(--ink)',
-                    border: '1px solid var(--ink)',
-                    boxShadow: selectedCategory === cat.id ? '2px 2px 0px var(--rust-clay)' : '1px 1px 0px var(--ink)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="report_cat"
-                    value={cat.id}
-                    checked={selectedCategory === cat.id}
-                    onChange={() => setSelectedCategory(cat.id)}
-                    style={{ accentColor: 'var(--rust-clay)', marginTop: '2px' }}
-                  />
-                  <div>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 700 }}>
-                      {cat.label}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', maxHeight: '220px', overflowY: 'auto' }}>
+              {REPORT_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <label
+                    key={cat.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px',
+                      padding: '8px 12px',
+                      background: isSelected ? 'var(--bg-surface-muted)' : 'var(--bg-surface)',
+                      color: 'var(--text-primary)',
+                      border: isSelected ? '2px solid var(--accent)' : '1.5px solid var(--border-soft)',
+                      borderRadius: 'var(--radius-md)',
+                      boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.1s ease'
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="report_cat"
+                      value={cat.id}
+                      checked={isSelected}
+                      onChange={() => setSelectedCategory(cat.id)}
+                      style={{ accentColor: 'var(--accent)', marginTop: '3px' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '0.86rem', fontWeight: 700 }}>
+                        {cat.label}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                        {cat.desc}
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.74rem', opacity: 0.8 }}>
-                      {cat.desc}
-                    </div>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                );
+              })}
             </div>
 
             {/* Additional details */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--ink)', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontFamily: 'var(--font-sans)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Additional Details (Optional):
               </label>
               <textarea
@@ -130,12 +137,12 @@ export const ReportModal = ({ isOpen, onClose }) => {
                 rows={2}
                 style={{
                   width: '100%',
-                  padding: '8px 10px',
-                  background: '#FFFFFF',
-                  border: '2px solid var(--ink)',
-                  boxShadow: '2px 2px 0px var(--ink)',
-                  color: 'var(--ink)',
-                  fontSize: '0.85rem',
+                  padding: '8px 12px',
+                  background: 'var(--bg-surface-muted)',
+                  border: '2px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.88rem',
                   fontFamily: 'var(--font-sans)',
                   resize: 'none'
                 }}
@@ -148,21 +155,17 @@ export const ReportModal = ({ isOpen, onClose }) => {
               </button>
               <button
                 type="submit"
-                className="btn"
+                className="btn btn-primary"
                 style={{
                   flex: 1.5,
                   padding: '10px',
-                  background: 'var(--rust-clay)',
-                  color: '#FFFFFF',
-                  border: '2px solid var(--ink)',
-                  boxShadow: '3px 3px 0px var(--ink)',
-                  fontFamily: 'var(--font-heading)',
-                  textTransform: 'uppercase',
-                  fontSize: '0.86rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
                   gap: '6px'
                 }}
               >
-                <Send size={13} /> Submit Report
+                <Send size={14} /> Submit Report
               </button>
             </div>
           </form>
@@ -171,3 +174,4 @@ export const ReportModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+export default ReportModal;

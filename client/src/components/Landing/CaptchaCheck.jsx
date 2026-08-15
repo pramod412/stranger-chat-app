@@ -39,34 +39,36 @@ export const CaptchaCheck = ({ isOpen, onVerified, onCancel }) => {
       <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
         <div
           style={{
-            width: '44px',
-            height: '44px',
-            background: 'var(--ink)',
-            color: 'var(--parchment)',
-            border: '2px solid var(--ink)',
+            width: '48px',
+            height: '48px',
+            background: 'var(--purple-bg)',
+            color: 'var(--purple)',
+            border: '2px solid var(--purple)',
+            borderRadius: 'var(--radius-pill)',
             boxShadow: 'var(--shadow-sm)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 10px auto'
+            margin: '0 auto 12px auto'
           }}
         >
-          <Bot size={22} color="var(--parchment)" />
+          <Bot size={24} color="var(--purple)" />
         </div>
 
-        <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
-          Quick Check
+        <h3 style={{ fontSize: '1.25rem', marginBottom: '4px', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
+          Human Verification
         </h3>
-        <p style={{ color: 'rgba(28, 26, 23, 0.75)', fontSize: '0.82rem', marginBottom: '16px' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', marginBottom: '16px' }}>
           Solve this simple math problem to prove you're human:
         </p>
 
         <form onSubmit={handleSubmit}>
           <div
             style={{
-              background: 'var(--parchment-card)',
-              border: '2px solid var(--ink)',
-              boxShadow: '2px 2px 0px var(--ink)',
+              background: 'var(--bg-surface-muted)',
+              border: '2px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: 'var(--shadow-sm)',
               padding: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -75,16 +77,17 @@ export const CaptchaCheck = ({ isOpen, onVerified, onCancel }) => {
               marginBottom: '14px'
             }}
           >
-            <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '2px', color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '2px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
               {num1} + {num2} = ?
             </span>
             <button
               type="button"
               onClick={generateProblem}
               title="New problem"
-              style={{ background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer', display: 'flex' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}
+              aria-label="Generate new problem"
             >
-              <RotateCw size={15} />
+              <RotateCw size={16} />
             </button>
           </div>
 
@@ -97,21 +100,22 @@ export const CaptchaCheck = ({ isOpen, onVerified, onCancel }) => {
             style={{
               width: '100%',
               padding: '10px 14px',
-              background: '#FFFFFF',
-              border: error ? '2px solid var(--rust-clay)' : '2px solid var(--ink)',
-              color: 'var(--ink)',
-              fontSize: '1.05rem',
+              background: 'var(--bg-surface)',
+              border: error ? '2px solid var(--accent)' : '2px solid var(--border)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--text-primary)',
+              fontSize: '1.1rem',
               textAlign: 'center',
               fontWeight: 700,
               fontFamily: 'var(--font-mono)',
               outline: 'none',
               marginBottom: '14px',
-              boxShadow: '2px 2px 0px var(--ink)'
+              boxShadow: 'var(--shadow-sm)'
             }}
           />
 
           {error && (
-            <p style={{ color: 'var(--rust-clay)', fontSize: '0.78rem', marginBottom: '12px', fontWeight: 600 }}>
+            <p style={{ color: 'var(--accent)', fontSize: '0.8rem', marginBottom: '12px', fontWeight: 600 }}>
               Incorrect answer. Please try again!
             </p>
           )}
@@ -128,18 +132,13 @@ export const CaptchaCheck = ({ isOpen, onVerified, onCancel }) => {
             <button
               type="submit"
               disabled={!userAnswer.trim()}
-              className="btn"
+              className="btn btn-primary"
               style={{
                 flex: 1.5,
                 padding: '10px',
-                background: userAnswer.trim() ? 'var(--rust-clay)' : 'rgba(28, 26, 23, 0.2)',
-                color: '#FFFFFF',
-                border: '2px solid var(--ink)',
-                boxShadow: userAnswer.trim() ? '3px 3px 0px var(--ink)' : 'none',
-                cursor: userAnswer.trim() ? 'pointer' : 'not-allowed',
-                fontFamily: 'var(--font-heading)',
-                textTransform: 'uppercase',
-                fontSize: '0.88rem'
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 700,
+                fontSize: '0.9rem'
               }}
             >
               Start
@@ -150,3 +149,4 @@ export const CaptchaCheck = ({ isOpen, onVerified, onCancel }) => {
     </div>
   );
 };
+export default CaptchaCheck;

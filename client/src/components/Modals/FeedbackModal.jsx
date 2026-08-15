@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Star, MessageSquareHeart, X, Check, Send, Sparkles, Lightbulb, Bug, Zap, MessageSquare, HelpCircle, ArrowRight } from 'lucide-react';
+import { Star, MessageSquareHeart, X, Check, Send, Sparkles, Lightbulb, Bug, Zap, MessageSquare } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 import { getServerUrl } from '../../utils/config';
 
 const CATEGORIES = [
-  { id: 'feature', label: 'Feature Idea', icon: Lightbulb, color: 'var(--rust-clay)' },
-  { id: 'bug', label: 'Bug / Issue', icon: Bug, color: 'var(--rust-clay)' },
-  { id: 'matchmaking', label: 'Matchmaking', icon: Zap, color: 'var(--sage)' },
-  { id: 'chat', label: 'Chat Experience', icon: MessageSquare, color: 'var(--ink)' },
-  { id: 'general', label: 'General Thoughts', icon: Sparkles, color: 'var(--ink)' }
+  { id: 'feature', label: 'Feature Idea', icon: Lightbulb, color: 'var(--purple)', bg: 'var(--purple-bg)' },
+  { id: 'bug', label: 'Bug / Issue', icon: Bug, color: 'var(--pink)', bg: 'var(--pink-bg)' },
+  { id: 'matchmaking', label: 'Matchmaking', icon: Zap, color: 'var(--teal)', bg: 'var(--teal-bg)' },
+  { id: 'chat', label: 'Chat Experience', icon: MessageSquare, color: 'var(--coral)', bg: 'var(--coral-bg)' },
+  { id: 'general', label: 'General Thoughts', icon: Sparkles, color: 'var(--accent)', bg: 'var(--coral-bg)' }
 ];
 
 const RATING_LABELS = {
@@ -95,22 +95,24 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
           maxHeight: '90dvh',
           overflowY: 'auto',
           padding: '24px',
-          background: 'var(--parchment)',
-          border: '2px solid var(--ink)',
+          background: 'var(--bg-surface)',
+          border: '2px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-lg)',
           textAlign: 'left'
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--ink)', paddingBottom: '12px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid var(--border-soft)', paddingBottom: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
-                background: 'var(--ink)',
-                color: 'var(--parchment)',
-                border: '1px solid var(--ink)',
+                width: '38px',
+                height: '38px',
+                background: 'var(--pink-bg)',
+                color: 'var(--pink)',
+                border: '2px solid var(--pink)',
+                borderRadius: 'var(--radius-pill)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -118,13 +120,13 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                 flexShrink: 0
               }}
             >
-              <MessageSquareHeart size={18} color="var(--parchment)" />
+              <MessageSquareHeart size={20} />
             </div>
             <div>
-              <span className="eyebrow" style={{ color: 'var(--rust-clay)', fontSize: '0.68rem', display: 'block', marginBottom: '2px' }}>
+              <span className="eyebrow" style={{ color: 'var(--accent)', fontSize: '0.68rem', display: 'block', marginBottom: '2px' }}>
                 COMMUNITY VOICE
               </span>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: 'var(--font-heading)', color: 'var(--ink)' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
                 Share Your Feedback
               </h3>
             </div>
@@ -137,10 +139,11 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'var(--ink)',
+              color: 'var(--text-secondary)',
               display: 'flex',
               padding: '4px'
             }}
+            aria-label="Close feedback modal"
           >
             <X size={18} />
           </button>
@@ -153,10 +156,11 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
               style={{
                 width: '56px',
                 height: '56px',
-                background: 'var(--sage)',
-                color: '#FFFFFF',
-                border: '2px solid var(--ink)',
-                boxShadow: '3px 3px 0px var(--ink)',
+                background: 'var(--teal-bg)',
+                color: 'var(--teal)',
+                border: '2px solid var(--teal)',
+                borderRadius: 'var(--radius-pill)',
+                boxShadow: 'var(--shadow-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -165,23 +169,19 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
             >
               <Check size={30} strokeWidth={3} />
             </div>
-            <h3 style={{ fontSize: '1.35rem', fontFamily: 'var(--font-heading)', color: 'var(--ink)', marginBottom: '8px' }}>
-              Thank You for Shaping Stranger Chat!
+            <h3 style={{ fontSize: '1.35rem', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', marginBottom: '8px' }}>
+              Thank You for Helping Us Improve!
             </h3>
-            <p style={{ color: 'rgba(28, 26, 23, 0.8)', fontSize: '0.88rem', lineHeight: 1.5, marginBottom: '24px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.5, marginBottom: '24px' }}>
               Your feedback has been delivered to our engineering and product team. We carefully review all suggestions to craft a faster, safer, and more fun experience.
             </p>
             <button
               type="button"
               onClick={handleReset}
-              className="btn"
+              className="btn btn-primary"
               style={{
                 width: '100%',
                 padding: '12px',
-                background: 'var(--ink)',
-                color: 'var(--parchment)',
-                border: '2px solid var(--ink)',
-                boxShadow: '3px 3px 0px var(--rust-clay)',
                 fontFamily: 'var(--font-heading)',
                 fontSize: '0.92rem',
                 textTransform: 'uppercase'
@@ -200,16 +200,15 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  fontSize: '0.74rem',
-                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
+                  fontFamily: 'var(--font-sans)',
                   fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: 'var(--ink)',
+                  color: 'var(--text-primary)',
                   marginBottom: '8px'
                 }}
               >
                 <span>Overall Experience</span>
-                <span style={{ color: 'var(--rust-clay)', textTransform: 'none', fontSize: '0.78rem' }}>
+                <span style={{ color: 'var(--accent)', textTransform: 'none', fontSize: '0.82rem' }}>
                   {RATING_LABELS[hoverRating || rating]}
                 </span>
               </label>
@@ -219,9 +218,10 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: 'var(--parchment-card)',
-                  border: '1px solid var(--ink)',
-                  boxShadow: '1px 1px 0px var(--ink)',
+                  background: 'var(--bg-surface-muted)',
+                  border: '1.5px solid var(--border-soft)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-sm)',
                   padding: '10px 14px',
                   justifyContent: 'center'
                 }}
@@ -247,8 +247,8 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                     >
                       <Star
                         size={28}
-                        color="var(--ink)"
-                        fill={isFilled ? 'var(--rust-clay)' : 'transparent'}
+                        color={isFilled ? 'var(--accent)' : 'var(--text-muted)'}
+                        fill={isFilled ? 'var(--accent)' : 'transparent'}
                         strokeWidth={1.75}
                       />
                     </button>
@@ -262,11 +262,10 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
               <label
                 style={{
                   display: 'block',
-                  fontSize: '0.74rem',
-                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
+                  fontFamily: 'var(--font-sans)',
                   fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: 'var(--ink)',
+                  color: 'var(--text-primary)',
                   marginBottom: '8px'
                 }}
               >
@@ -284,21 +283,22 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                       onClick={() => setCategory(cat.id)}
                       className="tag-pill"
                       style={{
-                        padding: '6px 10px',
-                        fontSize: '0.76rem',
+                        padding: '6px 12px',
+                        fontSize: '0.78rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         cursor: 'pointer',
-                        background: isSelected ? 'var(--ink)' : 'var(--parchment-card)',
-                        color: isSelected ? 'var(--parchment)' : 'var(--ink)',
-                        border: '1px solid var(--ink)',
-                        boxShadow: isSelected ? '2px 2px 0px var(--rust-clay)' : '1px 1px 0px var(--ink)',
-                        fontWeight: isSelected ? 700 : 500,
+                        background: isSelected ? cat.color : cat.bg,
+                        color: isSelected ? '#FFFFFF' : cat.color,
+                        border: `1.5px solid ${cat.color}`,
+                        borderRadius: 'var(--radius-pill)',
+                        boxShadow: isSelected ? 'var(--shadow-sm)' : 'none',
+                        fontWeight: isSelected ? 700 : 600,
                         transition: 'all 0.1s ease'
                       }}
                     >
-                      <Icon size={13} color={isSelected ? 'var(--parchment)' : cat.color} />
+                      <Icon size={14} color={isSelected ? '#FFFFFF' : cat.color} />
                       <span>{cat.label}</span>
                     </button>
                   );
@@ -311,16 +311,15 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <label
                   style={{
-                    fontSize: '0.74rem',
-                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.78rem',
+                    fontFamily: 'var(--font-sans)',
                     fontWeight: 700,
-                    textTransform: 'uppercase',
-                    color: 'var(--ink)'
+                    color: 'var(--text-primary)'
                   }}
                 >
                   Your Notes & Thoughts *
                 </label>
-                <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'rgba(28, 26, 23, 0.55)' }}>
+                <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                   {comment.length}/1000
                 </span>
               </div>
@@ -334,19 +333,20 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                 style={{
                   width: '100%',
                   padding: '10px 12px',
-                  fontSize: '0.85rem',
+                  fontSize: '0.88rem',
                   fontFamily: 'var(--font-sans)',
-                  background: '#FFFFFF',
-                  border: error ? '2px solid var(--rust-clay)' : '2px solid var(--ink)',
-                  boxShadow: '2px 2px 0px var(--ink)',
-                  color: 'var(--ink)',
+                  background: 'var(--bg-surface-muted)',
+                  border: error ? '2px solid var(--accent)' : '2px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-sm)',
+                  color: 'var(--text-primary)',
                   outline: 'none',
                   resize: 'vertical',
                   minHeight: '90px'
                 }}
               />
               {error && (
-                <p style={{ color: 'var(--rust-clay)', fontSize: '0.74rem', fontWeight: 600, margin: '4px 0 0 0', fontFamily: 'var(--font-mono)' }}>
+                <p style={{ color: 'var(--accent)', fontSize: '0.76rem', fontWeight: 600, margin: '4px 0 0 0', fontFamily: 'var(--font-sans)' }}>
                   {error}
                 </p>
               )}
@@ -359,14 +359,14 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.72rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
+                  fontSize: '0.76rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
                   marginBottom: '4px'
                 }}
               >
-                Contact Email or Telegram <span style={{ fontWeight: 400, color: 'rgba(28, 26, 23, 0.5)' }}>(Optional - for follow-ups)</span>
+                Contact Email or Telegram <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(Optional - for follow-ups)</span>
               </label>
               <input
                 type="text"
@@ -376,12 +376,13 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                 maxLength={100}
                 style={{
                   width: '100%',
-                  padding: '8px 10px',
-                  fontSize: '0.82rem',
-                  background: '#FFFFFF',
-                  border: '1px solid var(--ink)',
-                  boxShadow: '1px 1px 0px var(--ink)',
-                  color: 'var(--ink)',
+                  padding: '8px 12px',
+                  fontSize: '0.85rem',
+                  background: 'var(--bg-surface-muted)',
+                  border: '1.5px solid var(--border-soft)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-sm)',
+                  color: 'var(--text-primary)',
                   outline: 'none'
                 }}
               />
@@ -393,7 +394,7 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
                 type="button"
                 onClick={handleReset}
                 className="btn btn-subtle"
-                style={{ flex: 1, padding: '11px', fontSize: '0.84rem' }}
+                style={{ flex: 1, padding: '11px', fontSize: '0.88rem' }}
               >
                 Cancel
               </button>
@@ -401,15 +402,10 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={loading || !comment.trim()}
-                className="btn"
+                className="btn btn-primary"
                 style={{
                   flex: 2,
                   padding: '11px',
-                  background: comment.trim() ? 'var(--rust-clay)' : 'rgba(28, 26, 23, 0.3)',
-                  color: '#FFFFFF',
-                  border: '2px solid var(--ink)',
-                  boxShadow: comment.trim() ? '3px 3px 0px var(--ink)' : 'none',
-                  cursor: comment.trim() && !loading ? 'pointer' : 'not-allowed',
                   fontFamily: 'var(--font-heading)',
                   fontSize: '0.9rem',
                   textTransform: 'uppercase',
@@ -430,3 +426,4 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+export default FeedbackModal;

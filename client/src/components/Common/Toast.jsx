@@ -18,25 +18,32 @@ export const Toast = () => {
         position: 'fixed',
         bottom: '80px',
         right: '24px',
-        background: isError ? 'var(--rust-clay)' : 'var(--parchment)',
-        color: isError ? '#FFFFFF' : 'var(--ink)',
-        border: '2px solid var(--ink)',
-        boxShadow: '4px 4px 0px var(--ink)',
-        padding: '8px 16px',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '0.8rem',
-        fontWeight: 700,
+        background: isError ? 'var(--pink-bg)' : 'var(--bg-surface)',
+        color: isError ? 'var(--pink)' : 'var(--text-primary)',
+        border: isError ? '2px solid var(--pink)' : '2px solid var(--border)',
+        borderRadius: 'var(--radius-pill)',
+        boxShadow: 'var(--shadow-md)',
+        padding: '10px 20px',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '0.86rem',
+        fontWeight: 600,
         zIndex: 2000,
         display: 'flex',
         alignItems: 'center',
-        gap: '8px'
+        gap: '10px'
       }}
     >
       <span
-        className="status-chip-dot live"
-        style={{ background: isError ? '#FFFFFF' : 'var(--sage)' }}
+        style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          backgroundColor: isError ? 'var(--pink)' : 'var(--teal)',
+          display: 'inline-block'
+        }}
       />
       <span>{messageStr}</span>
     </div>
   );
 };
+export default Toast;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tag, Plus, X, Sparkles } from 'lucide-react';
+import { getTagTheme } from '../../utils/tagColors';
 
 const POPULAR_TAGS = [
   'love', 'relationship', 'fun', 'memes', 'dating', 'tiktok',
@@ -30,49 +31,48 @@ export const InterestPicker = ({ tags = [], setTags }) => {
   };
 
   return (
-    <div style={{ marginTop: '16px', width: '100%' }}>
+    <div style={{ marginTop: '14px', width: '100%' }}>
       {/* Header with tag counter */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
         <label
           style={{
-            fontSize: '0.78rem',
-            fontFamily: 'var(--font-mono)',
+            fontSize: '0.8rem',
+            fontFamily: 'var(--font-sans)',
             fontWeight: 700,
-            color: 'var(--ink)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
+            color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px'
           }}
         >
-          <Sparkles size={14} color="var(--rust-clay)" /> Topics you like (optional)
+          <Sparkles size={14} color="var(--accent)" /> Topics you like (optional)
         </label>
         <span
           style={{
-            fontSize: '0.72rem',
+            fontSize: '0.74rem',
             fontFamily: 'var(--font-mono)',
             fontWeight: 600,
-            color: 'rgba(28, 26, 23, 0.6)'
+            color: 'var(--text-muted)'
           }}
         >
           {tags.length}/8 tags
         </span>
       </div>
 
-      {/* Input container - Field Guide Blueprint Box */}
+      {/* Input container */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          background: '#FFFFFF',
-          border: '2px solid var(--ink)',
-          boxShadow: '2px 2px 0px var(--ink)',
+          background: 'var(--bg-surface)',
+          border: '2px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-sm)',
           padding: '4px 10px',
           gap: '8px'
         }}
       >
-        <Tag size={15} color="var(--ink)" />
+        <Tag size={15} color="var(--text-muted)" />
         <input
           type="text"
           value={inputVal}
@@ -81,12 +81,12 @@ export const InterestPicker = ({ tags = [], setTags }) => {
           placeholder="Add topics (e.g. gaming, anime, music)..."
           style={{
             flex: 1,
-            height: '34px',
+            height: '36px',
             background: 'transparent',
             border: 'none',
             outline: 'none',
             boxShadow: 'none',
-            color: 'var(--ink)',
+            color: 'var(--text-primary)',
             fontSize: '0.88rem',
             fontFamily: 'var(--font-sans)'
           }}
@@ -95,14 +95,13 @@ export const InterestPicker = ({ tags = [], setTags }) => {
           <button
             type="button"
             onClick={() => addTag(inputVal)}
-            className="btn"
+            className="btn btn-primary"
             style={{
-              padding: '3px 10px',
-              fontSize: '0.75rem',
-              height: '26px',
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
-              border: '1px solid var(--ink)'
+              padding: '4px 12px',
+              fontSize: '0.78rem',
+              height: '28px',
+              borderRadius: 'var(--radius-pill)',
+              border: '1.5px solid var(--border)'
             }}
           >
             <Plus size={13} /> Add
@@ -113,27 +112,33 @@ export const InterestPicker = ({ tags = [], setTags }) => {
       {/* Active Selected Tags */}
       {tags.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
-          {tags.map((t) => (
-            <span
-              key={t}
-              className="tag-pill active"
-              style={{
-                fontSize: '0.78rem',
-                padding: '3px 8px',
-                background: 'var(--ink)',
-                color: 'var(--parchment)',
-                border: '1px solid var(--ink)',
-                boxShadow: '2px 2px 0px var(--rust-clay)'
-              }}
-            >
-              #{t}
-              <X
-                size={12}
-                style={{ cursor: 'pointer', marginLeft: '4px', display: 'inline' }}
-                onClick={() => removeTag(t)}
-              />
-            </span>
-          ))}
+          {tags.map((t) => {
+            const theme = getTagTheme(t);
+            return (
+              <span
+                key={t}
+                className="tag-pill"
+                style={{
+                  fontSize: '0.8rem',
+                  padding: '4px 10px',
+                  background: theme.bg,
+                  color: theme.color,
+                  border: `1.5px solid ${theme.color}`,
+                  borderRadius: 'var(--radius-pill)',
+                  boxShadow: 'var(--shadow-sm)',
+                  fontWeight: 700
+                }}
+              >
+                #{t}
+                <X
+                  size={13}
+                  style={{ cursor: 'pointer', marginLeft: '4px', display: 'inline', strokeWidth: 2.5 }}
+                  onClick={() => removeTag(t)}
+                  aria-label={`Remove ${t} tag`}
+                />
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -141,12 +146,12 @@ export const InterestPicker = ({ tags = [], setTags }) => {
       <div style={{ marginTop: '12px' }}>
         <span
           style={{
-            fontSize: '0.7rem',
+            fontSize: '0.72rem',
             fontFamily: 'var(--font-mono)',
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            color: 'rgba(28, 26, 23, 0.65)',
+            color: 'var(--text-muted)',
             display: 'block',
             marginBottom: '6px',
             textAlign: 'left'
@@ -157,6 +162,7 @@ export const InterestPicker = ({ tags = [], setTags }) => {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {POPULAR_TAGS.map((t) => {
             const isSelected = tags.includes(t);
+            const theme = getTagTheme(t);
             return (
               <button
                 key={t}
@@ -165,12 +171,14 @@ export const InterestPicker = ({ tags = [], setTags }) => {
                 onClick={() => isSelected ? removeTag(t) : addTag(t)}
                 style={{
                   cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  padding: '3px 8px',
-                  background: isSelected ? 'var(--ink)' : 'var(--parchment-card)',
-                  color: isSelected ? 'var(--parchment)' : 'var(--ink)',
-                  border: '1px solid var(--ink)',
-                  boxShadow: isSelected ? '2px 2px 0px var(--rust-clay)' : '1px 1px 0px var(--ink)'
+                  fontSize: '0.78rem',
+                  padding: '4px 10px',
+                  background: isSelected ? theme.color : theme.bg,
+                  color: isSelected ? '#FFFFFF' : theme.color,
+                  border: `1.5px solid ${theme.color}`,
+                  borderRadius: 'var(--radius-pill)',
+                  boxShadow: isSelected ? 'var(--shadow-sm)' : '1px 1px 0 rgba(0,0,0,0.06)',
+                  fontWeight: 600
                 }}
               >
                 #{t}
@@ -182,3 +190,4 @@ export const InterestPicker = ({ tags = [], setTags }) => {
     </div>
   );
 };
+export default InterestPicker;

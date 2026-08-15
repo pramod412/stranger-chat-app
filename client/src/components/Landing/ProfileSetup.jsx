@@ -20,47 +20,46 @@ export const ProfileSetup = () => {
     <div
       style={{
         width: '100%',
-        background: 'var(--parchment-card)',
-        border: '1px solid var(--ink)',
-        boxShadow: '1px 1px 0px var(--ink)',
-        marginTop: '8px'
+        background: 'var(--bg-surface-muted)',
+        border: '1.5px solid var(--border-soft)',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-sm)',
+        marginTop: '6px',
+        overflow: 'hidden'
       }}
     >
       {/* Header Toggle */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          padding: '10px 12px',
+          padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
           userSelect: 'none',
-          background: isOpen ? 'var(--parchment-dark)' : 'transparent',
-          borderBottom: isOpen ? '1px solid var(--ink)' : 'none',
+          background: isOpen ? 'var(--border-soft)' : 'transparent',
           transition: 'background 0.15s ease'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <User size={15} color="var(--rust-clay)" />
+          <User size={16} color="var(--accent)" />
           <div style={{ minWidth: 0 }}>
             <span
               style={{
-                fontSize: '0.78rem',
-                fontFamily: 'var(--font-mono)',
+                fontSize: '0.82rem',
+                fontFamily: 'var(--font-sans)',
                 fontWeight: 700,
-                color: 'var(--ink)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em'
+                color: 'var(--text-primary)'
               }}
             >
               Share Details with Strangers
             </span>
             <span
               style={{
-                fontSize: '0.7rem',
-                fontFamily: 'var(--font-mono)',
-                color: 'rgba(28, 26, 23, 0.6)',
+                fontSize: '0.74rem',
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text-muted)',
                 marginLeft: '6px'
               }}
             >
@@ -72,26 +71,28 @@ export const ProfileSetup = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {hasAnyData && (
             <span
-              className="tag-pill active"
+              className="tag-pill"
               style={{
-                fontSize: '0.68rem',
-                padding: '1px 6px',
-                background: 'var(--sage)',
-                color: '#FFFFFF',
-                border: '1px solid var(--ink)'
+                fontSize: '0.72rem',
+                padding: '2px 8px',
+                background: 'var(--teal-bg)',
+                color: 'var(--teal)',
+                border: '1px solid var(--teal)',
+                borderRadius: 'var(--radius-pill)',
+                fontWeight: 700
               }}
             >
               Active Profile
             </span>
           )}
-          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {isOpen ? <ChevronUp size={16} color="var(--text-primary)" /> : <ChevronDown size={16} color="var(--text-primary)" />}
         </div>
       </div>
 
       {/* Expandable Form Body */}
       {isOpen && (
-        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <p style={{ fontSize: '0.76rem', color: 'rgba(28, 26, 23, 0.75)', lineHeight: 1.4, margin: 0 }}>
+        <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--bg-surface)' }}>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.4, margin: 0 }}>
             Fill in only what you'd like to share. Strangers will see this when you connect. Leave blank to stay completely anonymous.
           </p>
 
@@ -99,7 +100,7 @@ export const ProfileSetup = () => {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: '8px'
+              gap: '10px'
             }}
           >
             {/* Name / Nickname */}
@@ -109,14 +110,14 @@ export const ProfileSetup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  marginBottom: '3px'
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '4px'
                 }}
               >
-                <User size={12} /> Name / Nickname
+                <User size={12} color="var(--purple)" /> Name / Nickname
               </label>
               <input
                 type="text"
@@ -126,9 +127,9 @@ export const ProfileSetup = () => {
                 maxLength={30}
                 style={{
                   width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '0.82rem',
-                  height: '34px'
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  height: '36px'
                 }}
               />
             </div>
@@ -140,28 +141,23 @@ export const ProfileSetup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  marginBottom: '3px'
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '4px'
                 }}
               >
-                <Users size={12} /> Sex / Gender
+                <Users size={12} color="var(--pink)" /> Sex / Gender
               </label>
               <select
                 value={userProfile?.gender || ''}
                 onChange={(e) => updateUserProfile({ gender: e.target.value })}
                 style={{
                   width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '0.82rem',
-                  height: '34px',
-                  background: '#FFFFFF',
-                  border: '2px solid var(--ink)',
-                  color: 'var(--ink)',
-                  fontFamily: 'var(--font-sans)',
-                  outline: 'none',
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  height: '36px',
                   cursor: 'pointer'
                 }}
               >
@@ -179,14 +175,14 @@ export const ProfileSetup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  marginBottom: '3px'
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '4px'
                 }}
               >
-                <Calendar size={12} /> Age
+                <Calendar size={12} color="var(--coral)" /> Age
               </label>
               <input
                 type="number"
@@ -197,9 +193,9 @@ export const ProfileSetup = () => {
                 placeholder="e.g. 22"
                 style={{
                   width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '0.82rem',
-                  height: '34px'
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  height: '36px'
                 }}
               />
             </div>
@@ -211,14 +207,14 @@ export const ProfileSetup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  marginBottom: '3px'
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '4px'
                 }}
               >
-                <MapPin size={12} /> City
+                <MapPin size={12} color="var(--teal)" /> City
               </label>
               <input
                 type="text"
@@ -228,9 +224,9 @@ export const ProfileSetup = () => {
                 maxLength={40}
                 style={{
                   width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '0.82rem',
-                  height: '34px'
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  height: '36px'
                 }}
               />
             </div>
@@ -242,14 +238,14 @@ export const ProfileSetup = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
-                  color: 'var(--ink)',
-                  marginBottom: '3px'
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: '4px'
                 }}
               >
-                <Globe size={12} /> Country
+                <Globe size={12} color="var(--accent)" /> Country
               </label>
               <input
                 type="text"
@@ -259,9 +255,9 @@ export const ProfileSetup = () => {
                 maxLength={40}
                 style={{
                   width: '100%',
-                  padding: '6px 8px',
-                  fontSize: '0.82rem',
-                  height: '34px'
+                  padding: '6px 10px',
+                  fontSize: '0.85rem',
+                  height: '36px'
                 }}
               />
             </div>
@@ -269,22 +265,22 @@ export const ProfileSetup = () => {
 
           {/* Quick Clear Action */}
           {hasAnyData && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
               <button
                 type="button"
                 onClick={handleClear}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--rust-clay)',
-                  fontSize: '0.72rem',
-                  fontFamily: 'var(--font-mono)',
-                  fontWeight: 700,
+                  color: 'var(--accent)',
+                  fontSize: '0.76rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
                   cursor: 'pointer',
-                  padding: '2px 4px'
+                  padding: '4px'
                 }}
               >
                 <Trash2 size={12} /> Clear all details (Go 100% Anonymous)
@@ -296,3 +292,4 @@ export const ProfileSetup = () => {
     </div>
   );
 };
+export default ProfileSetup;

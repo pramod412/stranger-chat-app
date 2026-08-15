@@ -1,5 +1,5 @@
 import React from 'react';
-import { Ban, X } from 'lucide-react';
+import { Ban } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 
 export const BlockModal = ({ isOpen, onClose }) => {
@@ -17,26 +17,27 @@ export const BlockModal = ({ isOpen, onClose }) => {
       <div className="modal-content" style={{ maxWidth: '420px', textAlign: 'center' }}>
         <div
           style={{
-            width: '46px',
-            height: '46px',
-            background: 'var(--ink)',
-            color: 'var(--rust-clay)',
-            border: '2px solid var(--ink)',
+            width: '52px',
+            height: '52px',
+            background: 'var(--pink-bg)',
+            color: 'var(--pink)',
+            border: '2px solid var(--pink)',
+            borderRadius: 'var(--radius-pill)',
             boxShadow: 'var(--shadow-sm)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 12px auto'
+            margin: '0 auto 14px auto'
           }}
         >
-          <Ban size={22} color="var(--rust-clay)" />
+          <Ban size={26} color="var(--pink)" />
         </div>
 
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '6px', fontFamily: 'var(--font-heading)' }}>
+        <h3 style={{ fontSize: '1.3rem', marginBottom: '6px', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
           Block {currentMatch?.peerDisplayName || 'Stranger'}?
         </h3>
 
-        <p style={{ color: 'rgba(28, 26, 23, 0.75)', fontSize: '0.84rem', marginBottom: '18px', lineHeight: 1.45 }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.86rem', marginBottom: '20px', lineHeight: 1.5 }}>
           You will leave this chat immediately, and you will never be matched with this person again.
         </p>
 
@@ -50,9 +51,9 @@ export const BlockModal = ({ isOpen, onClose }) => {
             style={{
               flex: 1.4,
               padding: '10px',
-              fontFamily: 'var(--font-heading)',
-              textTransform: 'uppercase',
-              fontSize: '0.84rem'
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 700,
+              fontSize: '0.88rem'
             }}
             onClick={handleConfirmBlock}
           >
@@ -63,3 +64,4 @@ export const BlockModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+export default BlockModal;

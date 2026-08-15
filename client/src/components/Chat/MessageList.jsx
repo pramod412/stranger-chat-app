@@ -16,14 +16,14 @@ export const MessageList = () => {
         flex: 1,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        padding: '12px 14px',
+        padding: '14px 16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '10px',
-        background: 'var(--parchment)'
+        gap: '12px',
+        background: 'var(--bg-page)'
       }}
     >
-      {/* Session Start Banner */}
+      {/* Session Connection Banner (Single definitive source with peer info) */}
       {currentMatch && (() => {
         const peerProfile = currentMatch.peerProfile;
         const details = [
@@ -37,23 +37,24 @@ export const MessageList = () => {
           <div
             style={{
               alignSelf: 'center',
-              background: 'var(--parchment-card)',
-              border: '1px solid var(--ink)',
-              boxShadow: '1px 1px 0px var(--ink)',
-              padding: '6px 14px',
-              fontSize: '0.78rem',
-              fontFamily: 'var(--font-mono)',
-              color: 'var(--ink)',
+              background: 'var(--bg-surface)',
+              border: '1.5px solid var(--border-soft)',
+              borderRadius: 'var(--radius-pill)',
+              boxShadow: 'var(--shadow-sm)',
+              padding: '6px 16px',
+              fontSize: '0.8rem',
+              fontFamily: 'var(--font-sans)',
+              color: 'var(--text-primary)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              margin: '4px 0 8px 0',
+              margin: '4px 0 10px 0',
               flexWrap: 'wrap',
               justifyContent: 'center',
               textAlign: 'center'
             }}
           >
-            <ShieldCheck size={14} color="var(--sage)" />
+            <ShieldCheck size={16} color="var(--teal)" />
             <span>
               Connected with <strong>{currentMatch.peerDisplayName || 'Stranger'}</strong>
               {details ? ` (${details})` : ''}. Say hi!
@@ -62,26 +63,7 @@ export const MessageList = () => {
         );
       })()}
 
-      {/* Empty State Prompt */}
-      {messages.length === 0 && matchState === 'connected' && (
-        <div
-          style={{
-            margin: 'auto',
-            textAlign: 'center',
-            padding: '24px 16px',
-            maxWidth: '360px'
-          }}
-        >
-          <h4 style={{ fontSize: '1.05rem', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
-            You are connected!
-          </h4>
-          <p style={{ fontSize: '0.84rem', color: 'rgba(28, 26, 23, 0.75)', lineHeight: 1.4 }}>
-            Say hello to start the conversation, or type a message below.
-          </p>
-        </div>
-      )}
-
-      {/* Messages */}
+      {/* Messages Feed */}
       {messages.map((msg, index) => {
         const isMe = msg.fromMe;
         return (
@@ -91,18 +73,19 @@ export const MessageList = () => {
               display: 'flex',
               flexDirection: 'column',
               alignSelf: isMe ? 'flex-end' : 'flex-start',
-              maxWidth: 'min(88%, 560px)'
+              maxWidth: 'min(85%, 540px)'
             }}
           >
             {/* Sender Label */}
             <span
               style={{
-                fontSize: '0.7rem',
-                fontFamily: 'var(--font-mono)',
+                fontSize: '0.72rem',
+                fontFamily: 'var(--font-sans)',
                 fontWeight: 700,
-                color: isMe ? 'var(--rust-clay)' : 'var(--ink)',
-                marginBottom: '2px',
-                alignSelf: isMe ? 'flex-end' : 'flex-start'
+                color: isMe ? 'var(--accent)' : 'var(--text-secondary)',
+                marginBottom: '3px',
+                alignSelf: isMe ? 'flex-end' : 'flex-start',
+                padding: '0 2px'
               }}
             >
               {isMe ? 'You' : (currentMatch?.peerDisplayName || 'Stranger')}
@@ -111,15 +94,17 @@ export const MessageList = () => {
             {/* Bubble */}
             <div
               style={{
-                padding: '10px 14px',
-                background: isMe ? 'var(--ink)' : 'var(--parchment-card)',
-                color: isMe ? 'var(--parchment)' : 'var(--ink)',
-                border: '2px solid var(--ink)',
-                boxShadow: isMe ? '3px 3px 0px var(--rust-clay)' : '3px 3px 0px var(--ink)',
-                fontSize: '0.92rem',
+                padding: '10px 15px',
+                background: isMe ? 'var(--accent)' : 'var(--bg-surface)',
+                color: isMe ? 'var(--on-accent)' : 'var(--text-primary)',
+                border: '2px solid var(--border)',
+                borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                boxShadow: 'var(--shadow-sm)',
+                fontSize: '0.94rem',
                 wordBreak: 'break-word',
-                lineHeight: 1.45,
-                fontFamily: 'var(--font-sans)'
+                lineHeight: 1.48,
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 450
               }}
             >
               {typeof msg.text === 'string' ? msg.text : String(msg.text || '')}
@@ -131,15 +116,15 @@ export const MessageList = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--rust-clay)',
-                  marginTop: '3px',
+                  gap: '5px',
+                  fontSize: '0.74rem',
+                  fontFamily: 'var(--font-sans)',
+                  color: 'var(--accent)',
+                  marginTop: '4px',
                   alignSelf: isMe ? 'flex-end' : 'flex-start'
                 }}
               >
-                <AlertCircle size={12} />
+                <AlertCircle size={13} />
                 <span>{typeof msg.warning === 'string' ? msg.warning : String(msg.warning?.message || msg.warning || '')}</span>
               </div>
             )}
@@ -152,16 +137,17 @@ export const MessageList = () => {
         <div
           style={{
             alignSelf: 'flex-start',
-            background: 'var(--parchment-card)',
-            border: '1px solid var(--ink)',
-            boxShadow: '1px 1px 0px var(--ink)',
-            padding: '4px 10px',
+            background: 'var(--bg-surface)',
+            border: '1.5px solid var(--border-soft)',
+            borderRadius: 'var(--radius-pill)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '5px 12px',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '8px'
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>
+          <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>
             {currentMatch?.peerDisplayName || 'Stranger'} is typing
           </span>
           <div className="typing-dots">
@@ -177,19 +163,20 @@ export const MessageList = () => {
         <div
           style={{
             alignSelf: 'center',
-            background: '#FAF3F0',
-            border: '2px solid var(--rust-clay)',
-            boxShadow: '3px 3px 0px var(--rust-clay)',
-            padding: '12px 18px',
+            background: 'var(--pink-bg)',
+            border: '2px solid var(--pink)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '14px 20px',
             textAlign: 'center',
             margin: '14px 0',
-            maxWidth: '400px'
+            maxWidth: '420px'
           }}
         >
-          <p style={{ fontSize: '0.9rem', color: 'var(--rust-clay)', fontWeight: 700, marginBottom: '2px' }}>
+          <p style={{ fontSize: '0.94rem', color: 'var(--pink)', fontWeight: 700, marginBottom: '4px', fontFamily: 'var(--font-sans)' }}>
             Stranger has left the chat.
           </p>
-          <p style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>
+          <p style={{ fontSize: '0.82rem', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
             Click Next or press [Esc] to find someone new.
           </p>
         </div>
@@ -199,3 +186,4 @@ export const MessageList = () => {
     </div>
   );
 };
+export default MessageList;

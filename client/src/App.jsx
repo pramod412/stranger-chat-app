@@ -9,7 +9,7 @@ import { AdminDashboard } from './components/Modals/AdminDashboard';
 import { FeedbackModal } from './components/Modals/FeedbackModal';
 import { Toast } from './components/Common/Toast';
 import { useSocket } from './contexts/SocketContext';
-import { MessageSquare, Shield, MessageSquareHeart, RefreshCw } from 'lucide-react';
+import { MessageSquare, Shield, MessageSquareHeart, RefreshCw, Sun, Moon } from 'lucide-react';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -29,25 +29,21 @@ class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-          <div className="glass-panel" style={{ maxWidth: '480px', padding: '28px', textAlign: 'center', background: 'var(--parchment)', border: '2px solid var(--ink)', boxShadow: '6px 6px 0px var(--ink)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', color: 'var(--rust-clay)', marginBottom: '8px' }}>
+          <div className="glass-panel" style={{ maxWidth: '480px', padding: '28px', textAlign: 'center', background: 'var(--bg-surface)', border: '2px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
+            <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', color: 'var(--accent)', marginBottom: '8px' }}>
               Connection Interface Recovery
             </h3>
-            <p style={{ color: 'rgba(28, 26, 23, 0.8)', fontSize: '0.86rem', marginBottom: '18px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '18px' }}>
               {this.state.error?.message || 'An unexpected rendering error occurred.'}
             </p>
             <button
               type="button"
-              className="btn"
+              className="btn btn-primary"
               onClick={() => {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
               style={{
-                background: 'var(--rust-clay)',
-                color: '#FFFFFF',
-                border: '2px solid var(--ink)',
-                boxShadow: '3px 3px 0px var(--ink)',
                 fontFamily: 'var(--font-heading)',
                 padding: '10px 20px',
                 gap: '8px'
@@ -65,6 +61,19 @@ class ErrorBoundary extends Component {
 
 export function App() {
   const { matchState, startSearch, tags } = useSocket();
+
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('stranger_theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('stranger_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const [hasAgreedTerms, setHasAgreedTerms] = useState(() => {
     return localStorage.getItem('nexus_terms_accepted') === 'true';
@@ -106,8 +115,8 @@ export function App() {
         className="nav-header"
         style={{
           height: '60px',
-          borderBottom: '2px solid var(--ink)',
-          background: 'var(--parchment)',
+          borderBottom: '2px solid var(--border)',
+          background: 'var(--bg-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -115,17 +124,18 @@ export function App() {
           position: 'sticky',
           top: 0,
           zIndex: 50,
-          boxShadow: '0 2px 0px rgba(28, 26, 23, 0.08)'
+          boxShadow: '0 2px 0px rgba(0, 0, 0, 0.05)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => window.location.reload()}>
           <div
             style={{
-              width: '32px',
-              height: '32px',
-              background: 'var(--ink)',
-              color: 'var(--parchment)',
-              border: '1px solid var(--ink)',
+              width: '34px',
+              height: '34px',
+              background: 'var(--accent)',
+              color: 'var(--on-accent)',
+              border: '2px solid var(--border)',
+              borderRadius: 'var(--radius-sm)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -133,23 +143,36 @@ export function App() {
               flexShrink: 0
             }}
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={18} />
           </div>
           <div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1rem, 3.5vw, 1.2rem)', color: 'var(--ink)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.05rem, 3.5vw, 1.25rem)', color: 'var(--text-primary)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
               STRANGER CHAT
             </span>
           </div>
         </div>
 
-        {/* Center Handwritten Aside Moment (auto-hidden on mobile screens) */}
+        {/* Center Tagline in Sans-serif */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span className="handwritten-aside" style={{ fontSize: '1.15rem' }}>
+          <span className="tagline-text">
             talk to random strangers online
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Dark Mode Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="btn btn-subtle"
+            style={{ padding: '6px 10px', fontSize: '0.78rem', gap: '5px' }}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={15} color="var(--coral)" /> : <Moon size={15} color="var(--purple)" />}
+            <span style={{ display: 'none' }}>Theme</span>
+          </button>
+
           {/* Feedback Trigger */}
           <button
             type="button"
@@ -158,7 +181,7 @@ export function App() {
             style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap', gap: '6px' }}
             title="Share suggestions, bugs, or feedback"
           >
-            <MessageSquareHeart size={14} color="var(--rust-clay)" />
+            <MessageSquareHeart size={14} color="var(--pink)" />
             <span>Feedback</span>
           </button>
 
@@ -169,7 +192,7 @@ export function App() {
             className="btn btn-subtle"
             style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
           >
-            <Shield size={14} color="var(--sage)" />
+            <Shield size={14} color="var(--teal)" />
             <span>Admin</span>
           </button>
         </div>
