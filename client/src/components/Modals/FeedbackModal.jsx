@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, MessageSquareHeart, X, Check, Send, Sparkles, Lightbulb, Bug, Zap, MessageSquare, HelpCircle, ArrowRight } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
+import { getServerUrl } from '../../utils/config';
 
 const CATEGORIES = [
   { id: 'feature', label: 'Feature Idea', icon: Lightbulb, color: 'var(--rust-clay)' },
@@ -42,7 +43,7 @@ export const FeedbackModal = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '';
+      const serverUrl = getServerUrl();
       const response = await fetch(`${serverUrl}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

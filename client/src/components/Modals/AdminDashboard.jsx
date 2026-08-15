@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, RefreshCw, X, Check, Ban, AlertTriangle, MessageSquare, Clock, ArrowLeft, MessageSquareHeart, Star, Lightbulb, Bug, Zap, Sparkles, Filter, CheckCircle2 } from 'lucide-react';
+import { getServerUrl } from '../../utils/config';
 
 export const AdminDashboard = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('reports'); // 'reports' | 'feedback'
@@ -15,7 +16,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '';
+      const serverUrl = getServerUrl();
       const res = await fetch(`${serverUrl}/api/admin/reports`);
       const data = await res.json();
       setReports(data.reports || []);
@@ -32,7 +33,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
   const fetchFeedbacks = async () => {
     setLoading(true);
     try {
-      const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '';
+      const serverUrl = getServerUrl();
       const res = await fetch(`${serverUrl}/api/admin/feedback`);
       const data = await res.json();
       setFeedbacks(data.feedbacks || []);
@@ -73,7 +74,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   const handleReportAction = async (reportId, action) => {
     try {
-      const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '';
+      const serverUrl = getServerUrl();
       await fetch(`${serverUrl}/api/admin/reports/${reportId}/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +92,7 @@ export const AdminDashboard = ({ isOpen, onClose }) => {
 
   const handleFeedbackStatus = async (feedbackId, status) => {
     try {
-      const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '';
+      const serverUrl = getServerUrl();
       await fetch(`${serverUrl}/api/admin/feedback/${feedbackId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

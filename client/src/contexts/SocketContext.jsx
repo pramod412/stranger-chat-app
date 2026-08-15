@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { sounds } from '../utils/soundEffects';
+import { getServerUrl } from '../utils/config';
 
 const SocketContext = createContext(null);
 
@@ -53,8 +54,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Connect to backend server
-    const serverUrl = window.location.hostname === 'localhost' ? 'http://localhost:4000' : '/';
-    const s = io(serverUrl, {
+    const serverUrl = getServerUrl();
+    const s = io(serverUrl || window.location.origin, {
       query: { userId },
       transports: ['websocket', 'polling']
     });
