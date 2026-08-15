@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { useSocket } from './SocketContext';
 
 const WebRTCContext = createContext(null);
@@ -22,45 +22,11 @@ export const WebRTCProvider = ({ children }) => {
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
+  const iceCandidatesQueue = useRef([]);
+  const isSettingUpRef = useRef(false);
 
-  // Initialize or stop user media when videoMode changes
-  useEffect(() => {
-    if (!videoMode) {
-      cleanupMedia();
-      return;
-    }
-
-    startUserMedia();
-
-    return () => {
-      cleanupMedia();
-    };
-  }, [videoMode]);
-
-  const startUserMedia = async () => {
-    try {
-      setMediaError(null);
-      let stream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-          audio: true
-        });
-      } catch (err) {
-        console.warn('Real camera not available, creating virtual video stream for demonstration', err);
-        // Fallback: virtual canvas stream for testing without camera device
-        stream = createVirtualStream();
-      }
-
-      setLocalStream(stream);
-      localStreamRef.current = stream;
-    } catch (err) {
-      console.error('Failed to get media devices:', err);
-      setMediaError('Could not access camera/microphone. Switching to virtual video mode.');
-    }
-  };
-
-  const createVirtualStream = () => {
+  // Virtual canvas stream fallback for environments without physical camera
+  const createVirtualStream = useCallback(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
@@ -75,7 +41,7 @@ export const WebRTCProvider = ({ children }) => {
       ctx.fillStyle = '#00f2fe';
       ctx.font = '24px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('⚡ Nexus Cyber Video Feed', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText('⚡ Stranger Chat Video Stream', canvas.width / 2, canvas.height / 2 - 20);
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '16px Inter, sans-serif';
@@ -86,92 +52,214 @@ export const WebRTCProvider = ({ children }) => {
     draw();
 
     const canvasStream = canvas.captureStream(30);
-    // Add silent audio track
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const dst = osc.connect(audioCtx.createMediaStreamDestination());
-    osc.start();
-    const track = dst.stream.getAudioTracks()[0];
-    track.enabled = false;
-    canvasStream.addTrack(track);
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const dst = osc.connect(audioCtx.createMediaStreamDestination());
+      osc.start();
+      const track = dst.stream.getAudioTracks()[0];
+      if (track) {
+        track.enabled = false;
+        canvasStream.addTrack(track);
+      }
+    } catch (e) {
+      console.warn('AudioContext fallback note:', e);
+    }
 
     return canvasStream;
-  };
+  }, []);
 
-  const cleanupMedia = () => {
+  // Ensure local camera/audio stream is active
+  const ensureLocalStream = useCallback(async () => {
+    if (localStreamRef.current && localStreamRef.current.active) {
+      const videoTrack = localStreamRef.current.getVideoTracks()[0];
+      const audioTrack = localStreamRef.current.getAudioTracks()[0];
+      if (videoTrack && videoTrack.readyState === 'live') {
+        return localStreamRef.current;
+      }
+    }
+
+    try {
+      setMediaError(null);
+      let stream;
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+            audio: true
+          });
+        } catch (err) {
+          console.warn('Physical camera unavailable or permission denied, creating virtual fallback feed', err);
+          stream = createVirtualStream();
+        }
+      } else {
+        stream = createVirtualStream();
+      }
+
+      localStreamRef.current = stream;
+      setLocalStream(stream);
+      setIsVideoEnabled(true);
+      setIsAudioEnabled(true);
+      return stream;
+    } catch (err) {
+      console.error('Failed to get media devices:', err);
+      const fallback = createVirtualStream();
+      localStreamRef.current = fallback;
+      setLocalStream(fallback);
+      return fallback;
+    }
+  }, [createVirtualStream]);
+
+  // Clean up media when exiting video mode
+  const cleanupMedia = useCallback(() => {
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
       localStreamRef.current = null;
       setLocalStream(null);
     }
     closePeerConnection();
-  };
+  }, []);
 
-  const closePeerConnection = () => {
+  // Teardown WebRTC peer connection
+  const closePeerConnection = useCallback(() => {
     if (pcRef.current) {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
+      pcRef.current.oniceconnectionstatechange = null;
       pcRef.current.close();
       pcRef.current = null;
     }
+    iceCandidatesQueue.current = [];
     setRemoteStream(null);
-  };
+    setPeerMediaState({ videoEnabled: true, audioEnabled: true });
+    isSettingUpRef.current = false;
+  }, []);
 
-  // Manage WebRTC connection when match changes
-  useEffect(() => {
+  // Initialize WebRTC session
+  const initWebRTCSession = useCallback(async () => {
     if (!socket || !videoMode || matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
       return;
     }
 
-    const initPeerConnection = async () => {
+    if (isSettingUpRef.current) return;
+    isSettingUpRef.current = true;
+
+    try {
       closePeerConnection();
 
+      // 1. Ensure local stream is ready before creating peer connection
+      const stream = await ensureLocalStream();
+      if (!stream || matchState !== 'connected') {
+        isSettingUpRef.current = false;
+        return;
+      }
+
+      // 2. Instantiate RTCPeerConnection
       const pc = new RTCPeerConnection(RTC_CONFIG);
       pcRef.current = pc;
 
-      // Add local tracks
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track) => {
-          pc.addTrack(track, localStreamRef.current);
-        });
-      }
+      // 3. Add local tracks
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
 
-      // Handle ICE Candidates
+      // 4. Handle ICE Candidates
       pc.onicecandidate = (event) => {
         if (event.candidate) {
           socket.emit('webrtc:ice-candidate', { candidate: event.candidate });
         }
       };
 
-      // Handle incoming remote stream
+      // 5. Handle Incoming Remote Stream
       pc.ontrack = (event) => {
         if (event.streams && event.streams[0]) {
           setRemoteStream(event.streams[0]);
+        } else if (event.track) {
+          const inboundStream = new MediaStream([event.track]);
+          setRemoteStream(inboundStream);
         }
       };
 
-      // If initiator, create and send SDP offer
-      if (currentMatch.isInitiator) {
-        try {
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket.emit('webrtc:offer', { offer });
-        } catch (e) {
-          console.error('Error creating WebRTC offer:', e);
+      // 6. Handle Connection State
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+          console.log('WebRTC ICE connection state:', pc.iceConnectionState);
         }
+      };
+
+      // 7. If initiator, create and dispatch SDP offer
+      if (currentMatch.isInitiator) {
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true
+        });
+        await pc.setLocalDescription(offer);
+        socket.emit('webrtc:offer', { offer });
       }
-    };
+    } catch (err) {
+      console.error('Error initializing WebRTC session:', err);
+    } finally {
+      isSettingUpRef.current = false;
+    }
+  }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection]);
 
-    initPeerConnection();
+  // Trigger media initialization on videoMode toggle or match changes
+  useEffect(() => {
+    if (videoMode && matchState === 'connected' && currentMatch) {
+      initWebRTCSession();
+    } else if (!videoMode) {
+      closePeerConnection();
+    }
+  }, [videoMode, matchState, currentMatch, initWebRTCSession, closePeerConnection]);
 
-    // Listeners for signaling events
+  // Socket signaling event listeners
+  useEffect(() => {
+    if (!socket) return;
+
     const handleOffer = async ({ offer }) => {
-      if (!pcRef.current) return;
       try {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await pcRef.current.createAnswer();
-        await pcRef.current.setLocalDescription(answer);
+        const stream = await ensureLocalStream();
+        if (!pcRef.current) {
+          const pc = new RTCPeerConnection(RTC_CONFIG);
+          pcRef.current = pc;
+
+          if (stream) {
+            stream.getTracks().forEach((track) => {
+              pc.addTrack(track, stream);
+            });
+          }
+
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit('webrtc:ice-candidate', { candidate: event.candidate });
+            }
+          };
+
+          pc.ontrack = (event) => {
+            if (event.streams && event.streams[0]) {
+              setRemoteStream(event.streams[0]);
+            } else if (event.track) {
+              setRemoteStream(new MediaStream([event.track]));
+            }
+          };
+        }
+
+        const pc = pcRef.current;
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+        // Flush queued ICE candidates
+        while (iceCandidatesQueue.current.length > 0) {
+          const cand = iceCandidatesQueue.current.shift();
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(cand));
+          } catch (e) {
+            console.warn('Queued ICE candidate note:', e);
+          }
+        }
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
         socket.emit('webrtc:answer', { answer });
       } catch (err) {
         console.error('Error handling WebRTC offer:', err);
@@ -182,40 +270,65 @@ export const WebRTCProvider = ({ children }) => {
       if (!pcRef.current) return;
       try {
         await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+
+        // Flush queued ICE candidates
+        while (iceCandidatesQueue.current.length > 0) {
+          const cand = iceCandidatesQueue.current.shift();
+          try {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
+          } catch (e) {
+            console.warn('Queued ICE candidate note:', e);
+          }
+        }
       } catch (err) {
         console.error('Error handling WebRTC answer:', err);
       }
     };
 
     const handleCandidate = async ({ candidate }) => {
-      if (!pcRef.current) return;
-      try {
-        await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (err) {
-        console.error('Error adding ICE candidate:', err);
+      if (!candidate) return;
+      const pc = pcRef.current;
+      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error('Error adding ICE candidate:', err);
+        }
+      } else {
+        iceCandidatesQueue.current.push(candidate);
       }
     };
 
     const handlePeerMediaState = ({ videoEnabled, audioEnabled }) => {
-      setPeerMediaState({ videoEnabled, audioEnabled });
+      setPeerMediaState({
+        videoEnabled: videoEnabled !== false,
+        audioEnabled: audioEnabled !== false
+      });
+    };
+
+    const handlePeerVideoToggle = ({ enabled }) => {
+      if (enabled && !videoMode) {
+        setVideoMode(true);
+      }
     };
 
     socket.on('webrtc:offer', handleOffer);
     socket.on('webrtc:answer', handleAnswer);
     socket.on('webrtc:ice-candidate', handleCandidate);
     socket.on('webrtc:peer-media-state', handlePeerMediaState);
+    socket.on('video:peer-toggle', handlePeerVideoToggle);
 
     return () => {
       socket.off('webrtc:offer', handleOffer);
       socket.off('webrtc:answer', handleAnswer);
       socket.off('webrtc:ice-candidate', handleCandidate);
       socket.off('webrtc:peer-media-state', handlePeerMediaState);
-      closePeerConnection();
+      socket.off('video:peer-toggle', handlePeerVideoToggle);
     };
-  }, [socket, currentMatch, matchState, videoMode]);
+  }, [socket, videoMode, ensureLocalStream]);
 
-  // Controls
-  const toggleVideo = () => {
+  // Toggle Video / Camera ON/OFF
+  const toggleVideo = useCallback(() => {
     if (localStreamRef.current) {
       const videoTrack = localStreamRef.current.getVideoTracks()[0];
       if (videoTrack) {
@@ -227,9 +340,10 @@ export const WebRTCProvider = ({ children }) => {
         });
       }
     }
-  };
+  }, [socket, isAudioEnabled]);
 
-  const toggleAudio = () => {
+  // Toggle Audio / Microphone ON/OFF
+  const toggleAudio = useCallback(() => {
     if (localStreamRef.current) {
       const audioTrack = localStreamRef.current.getAudioTracks()[0];
       if (audioTrack) {
@@ -241,13 +355,21 @@ export const WebRTCProvider = ({ children }) => {
         });
       }
     }
-  };
+  }, [socket, isVideoEnabled]);
+
+  // Switch video mode helper
+  const handleSetVideoMode = useCallback((val) => {
+    setVideoMode(val);
+    if (socket && matchState === 'connected') {
+      socket.emit('video:toggle', { enabled: Boolean(val) });
+    }
+  }, [socket, matchState]);
 
   return (
     <WebRTCContext.Provider
       value={{
         videoMode,
-        setVideoMode,
+        setVideoMode: handleSetVideoMode,
         localStream,
         remoteStream,
         isVideoEnabled,
@@ -255,7 +377,8 @@ export const WebRTCProvider = ({ children }) => {
         peerMediaState,
         mediaError,
         toggleVideo,
-        toggleAudio
+        toggleAudio,
+        ensureLocalStream
       }}
     >
       {children}

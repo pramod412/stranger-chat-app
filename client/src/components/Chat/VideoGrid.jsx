@@ -19,19 +19,36 @@ export const VideoGrid = () => {
   const remoteVideoRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Bind local stream and ensure play() is executed
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
+    const videoEl = localVideoRef.current;
+    if (videoEl && localStream) {
+      if (videoEl.srcObject !== localStream) {
+        videoEl.srcObject = localStream;
+      }
+      videoEl.play().catch((err) => {
+        // Autoplay policy or abort handling
+        console.log('Local video play notice:', err?.name);
+      });
     }
-  }, [localStream]);
+  }, [localStream, isVideoEnabled]);
 
+  // Bind remote stream and ensure play() is executed
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
+    const videoEl = remoteVideoRef.current;
+    if (videoEl && remoteStream) {
+      if (videoEl.srcObject !== remoteStream) {
+        videoEl.srcObject = remoteStream;
+      }
+      videoEl.play().catch((err) => {
+        console.log('Remote video play notice:', err?.name);
+      });
     }
-  }, [remoteStream]);
+  }, [remoteStream, peerMediaState?.videoEnabled]);
 
   const strangerName = currentMatch?.peerDisplayName || 'Stranger';
+  const isRemoteVideoActive = remoteStream && peerMediaState?.videoEnabled !== false;
+  const isLocalVideoActive = localStream && isVideoEnabled;
 
   return (
     <div
@@ -42,16 +59,35 @@ export const VideoGrid = () => {
       }}
     >
       {/* 1. Remote Stranger Video Feed */}
-      <div className="video-frame" style={{ flex: 1.2 }}>
-        {remoteStream && peerMediaState?.videoEnabled !== false ? (
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div style={{ textAlign: 'center', color: 'var(--parchment)', padding: '16px' }}>
+      <div className="video-frame" style={{ flex: 1.2, position: 'relative', overflow: 'hidden' }}>
+        {/* Permanent Video Element */}
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: isRemoteVideoActive ? 'block' : 'none'
+          }}
+        />
+
+        {/* Remote Camera-Off / Placeholder Overlay */}
+        {!isRemoteVideoActive && (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--parchment)',
+              padding: '16px',
+              background: 'rgba(28, 26, 23, 0.95)'
+            }}
+          >
             <div
               style={{
                 width: '48px',
@@ -108,22 +144,37 @@ export const VideoGrid = () => {
       </div>
 
       {/* 2. Local User Video Feed */}
-      <div className="video-frame" style={{ flex: 1 }}>
-        {localStream && isVideoEnabled ? (
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
+      <div className="video-frame" style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {/* Permanent Local Video Element */}
+        <video
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transform: 'scaleX(-1)', // Mirror local view
+            display: isLocalVideoActive ? 'block' : 'none'
+          }}
+        />
+
+        {/* Local Camera-Off Overlay */}
+        {!isLocalVideoActive && (
+          <div
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              transform: 'scaleX(-1)' // Mirror local view
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--parchment)',
+              padding: '16px',
+              background: 'rgba(28, 26, 23, 0.95)'
             }}
-          />
-        ) : (
-          <div style={{ textAlign: 'center', color: 'var(--parchment)', padding: '16px' }}>
+          >
             <div
               style={{
                 width: '48px',
