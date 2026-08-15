@@ -16,10 +16,12 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '36px 20px',
+        padding: '24px 14px 48px 14px',
         maxWidth: '900px',
+        width: '100%',
         margin: '0 auto',
-        textAlign: 'center'
+        textAlign: 'center',
+        minHeight: 'auto'
       }}
     >
       {/* Live status chips */}
@@ -35,7 +37,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
           }}
         >
           <span className="live-dot" />
-          <span>{stats?.onlineUsers > 0 ? stats.onlineUsers : 1} {stats?.onlineUsers === 1 ? 'Person' : 'People'} Online</span>
+          <span>{stats?.onlineUsers ?? 0} {(stats?.onlineUsers === 1) ? 'Person' : 'People'} Online</span>
         </div>
 
         <div

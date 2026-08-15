@@ -6,9 +6,10 @@ import { ChatContainer } from './components/Chat/ChatContainer';
 import { ReportModal } from './components/Modals/ReportModal';
 import { BlockModal } from './components/Modals/BlockModal';
 import { AdminDashboard } from './components/Modals/AdminDashboard';
+import { FeedbackModal } from './components/Modals/FeedbackModal';
 import { Toast } from './components/Common/Toast';
 import { useSocket } from './contexts/SocketContext';
-import { MessageSquare, Shield, Radio, Volume2, Sparkles, RefreshCw } from 'lucide-react';
+import { MessageSquare, Shield, MessageSquareHeart, RefreshCw } from 'lucide-react';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -73,6 +74,7 @@ export function App() {
   const [showReport, setShowReport] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleStartChatClick = () => {
     if (!hasAgreedTerms) {
@@ -148,20 +150,44 @@ export function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Feedback Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowFeedback(true)}
+            className="btn btn-subtle"
+            style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap', gap: '6px' }}
+            title="Share suggestions, bugs, or feedback"
+          >
+            <MessageSquareHeart size={14} color="var(--rust-clay)" />
+            <span>Feedback</span>
+          </button>
+
+          {/* Admin Dashboard */}
           <button
             type="button"
             onClick={() => setShowAdmin(true)}
             className="btn btn-subtle"
             style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
           >
-            <Shield size={14} color="var(--rust-clay)" />
+            <Shield size={14} color="var(--sage)" />
             <span>Admin</span>
           </button>
         </div>
       </header>
 
       {/* Main Body */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <main
+        className="main-content"
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          minHeight: 0,
+          overflowY: isInChatSession ? 'hidden' : 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
         <ErrorBoundary>
           {matchState === 'banned' ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -182,6 +208,7 @@ export function App() {
             <Hero
               onStartChat={handleStartChatClick}
               onOpenAdmin={() => setShowAdmin(true)}
+              onOpenFeedback={() => setShowFeedback(true)}
             />
           )}
         </ErrorBoundary>
@@ -198,6 +225,11 @@ export function App() {
         isOpen={showCaptcha}
         onVerified={handleCaptchaVerified}
         onCancel={() => setShowCaptcha(false)}
+      />
+
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
       />
 
       <ReportModal

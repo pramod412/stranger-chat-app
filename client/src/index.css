@@ -74,19 +74,36 @@
   border-radius: 0px !important; /* Non-negotiable for Field Guide aesthetic */
 }
 
+html {
+  width: 100%;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--putty-bg);
   color: var(--text-primary);
-  min-height: 100vh;
+  min-height: 100%;
+  width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
   line-height: 1.45;
+  -webkit-overflow-scrolling: touch;
   /* Blueprint Grid Pattern */
   background-image: 
     linear-gradient(to right, rgba(28, 26, 23, 0.08) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(28, 26, 23, 0.08) 1px, transparent 1px);
   background-size: 28px 28px;
   background-position: center center;
+}
+
+#root {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Custom Scrollbar - Instrument Panel Style */
@@ -408,6 +425,7 @@ button, input, select, textarea, .tag-pill {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .chat-shell {
@@ -416,7 +434,7 @@ button, input, select, textarea, .tag-pill {
   align-items: center;
   padding: 16px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1120px;
   height: calc(100vh - 60px);
   height: calc(100dvh - 60px);
   margin: 0 auto;
@@ -429,12 +447,98 @@ button, input, select, textarea, .tag-pill {
   flex-direction: column;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  position: relative;
+}
+
+/* Video Stage Styling */
+.video-stage {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 10px;
+  background: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.video-frame {
+  position: relative;
+  background: #12100E;
+  border: 1px solid rgba(240, 236, 223, 0.3);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 1;
+  aspect-ratio: 16/9;
+  min-height: 140px;
+}
+
+.video-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-badge-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(28, 26, 23, 0.85);
+  border: 1px solid rgba(240, 236, 223, 0.4);
+  color: var(--parchment);
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+
+.video-controls-overlay {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.video-action-btn {
+  width: 34px;
+  height: 34px;
+  background: rgba(28, 26, 23, 0.85);
+  border: 1px solid rgba(240, 236, 223, 0.5);
+  color: var(--parchment);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 1px 1px 0px #000;
+  transition: all 0.15s ease;
+}
+
+.video-action-btn:hover {
+  background: var(--rust-clay);
+  border-color: var(--parchment);
+  color: #FFFFFF;
+}
+
+.video-action-btn.active-off {
+  background: var(--rust-clay);
+  color: #FFFFFF;
 }
 
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
   .chat-shell {
-    padding: 10px;
+    padding: 8px;
   }
 }
 
@@ -446,36 +550,47 @@ button, input, select, textarea, .tag-pill {
 
   .chat-shell {
     padding: 0;
-    height: calc(100vh - 56px);
-    height: calc(100dvh - 56px);
+    height: calc(100vh - 54px);
+    height: calc(100dvh - 54px);
   }
 
   .chat-panel {
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
+    border: none;
     box-shadow: none;
   }
 
+  /* Adaptive Mobile Video Grid */
+  .video-stage {
+    flex-direction: column;
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .video-frame {
+    aspect-ratio: 4/3;
+    min-height: 120px;
+    max-height: 28vh;
+  }
+
   .modal-backdrop {
-    padding: 12px;
+    padding: 10px;
   }
 
   .modal-content {
-    padding: 18px 16px;
+    padding: 16px 14px;
     max-height: 90dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .btn {
-    padding: 9px 14px;
-    font-size: 0.85rem;
+    padding: 9px 13px;
+    font-size: 0.84rem;
   }
 
   .btn-skip {
-    padding: 10px 16px;
-    font-size: 0.88rem;
+    padding: 10px 14px;
+    font-size: 0.86rem;
   }
 
   .tag-pill {
@@ -486,8 +601,8 @@ button, input, select, textarea, .tag-pill {
 
 @media (max-width: 640px) {
   .nav-header {
-    padding: 0 12px !important;
-    height: 54px !important;
+    padding: 0 10px !important;
+    height: 52px !important;
   }
 
   .handwritten-aside {
@@ -495,9 +610,9 @@ button, input, select, textarea, .tag-pill {
   }
 
   .toast-container {
-    left: 12px !important;
-    right: 12px !important;
-    bottom: 74px !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 68px !important;
     justify-content: center !important;
     text-align: center !important;
   }
@@ -505,8 +620,8 @@ button, input, select, textarea, .tag-pill {
 
 @media (max-width: 480px) {
   .btn {
-    padding: 8px 12px;
-    font-size: 0.82rem;
+    padding: 8px 10px;
+    font-size: 0.8rem;
   }
 
   .btn-skip {
@@ -515,12 +630,42 @@ button, input, select, textarea, .tag-pill {
   }
 
   .hero-card {
-    padding: 16px !important;
+    padding: 14px !important;
   }
 
   .radar-circle {
-    width: 110px;
-    height: 110px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .video-frame {
+    max-height: 24vh;
+  }
+}
+
+/* Landscape on Mobile Phones */
+@media (max-height: 520px) and (orientation: landscape) {
+  .nav-header {
+    height: 44px !important;
+    padding: 0 10px !important;
+  }
+
+  .chat-shell {
+    height: calc(100vh - 44px) !important;
+    height: calc(100dvh - 44px) !important;
+    padding: 0;
+  }
+
+  .video-stage {
+    flex-direction: row;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .video-frame {
+    aspect-ratio: 16/9;
+    min-height: 80px;
+    max-height: 38vh;
   }
 }
 

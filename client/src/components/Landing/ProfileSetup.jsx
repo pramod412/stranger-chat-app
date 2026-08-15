@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { User, MapPin, Calendar, Globe, ChevronDown, ChevronUp, Sparkles, Trash2 } from 'lucide-react';
+import { User, MapPin, Calendar, Globe, ChevronDown, ChevronUp, Sparkles, Trash2, Users } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 
 export const ProfileSetup = () => {
   const { userProfile, updateUserProfile } = useSocket();
   const [isOpen, setIsOpen] = useState(() => {
     // If user has already filled any data, open by default
-    return Boolean(userProfile?.name || userProfile?.city || userProfile?.country || userProfile?.age);
+    return Boolean(userProfile?.name || userProfile?.city || userProfile?.country || userProfile?.age || userProfile?.gender);
   });
 
-  const hasAnyData = Boolean(userProfile?.name || userProfile?.age || userProfile?.city || userProfile?.country);
+  const hasAnyData = Boolean(userProfile?.name || userProfile?.age || userProfile?.gender || userProfile?.city || userProfile?.country);
 
   const handleClear = (e) => {
     e.stopPropagation();
-    updateUserProfile({ name: '', age: '', city: '', country: '' });
+    updateUserProfile({ name: '', age: '', gender: '', city: '', country: '' });
   };
 
   return (
@@ -131,6 +131,45 @@ export const ProfileSetup = () => {
                   height: '34px'
                 }}
               />
+            </div>
+
+            {/* Sex / Gender */}
+            <div>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.7rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  color: 'var(--ink)',
+                  marginBottom: '3px'
+                }}
+              >
+                <Users size={12} /> Sex / Gender
+              </label>
+              <select
+                value={userProfile?.gender || ''}
+                onChange={(e) => updateUserProfile({ gender: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '6px 8px',
+                  fontSize: '0.82rem',
+                  height: '34px',
+                  background: '#FFFFFF',
+                  border: '2px solid var(--ink)',
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--font-sans)',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="">-- Not specified --</option>
+                <option value="Male (M)">Male (M)</option>
+                <option value="Female (F)">Female (F)</option>
+                <option value="Other">Other / Non-Binary</option>
+              </select>
             </div>
 
             {/* Age */}

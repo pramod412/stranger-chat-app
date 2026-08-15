@@ -27,6 +27,7 @@ export const MessageList = () => {
       {currentMatch && (() => {
         const peerProfile = currentMatch.peerProfile;
         const details = [
+          peerProfile?.gender || null,
           peerProfile?.age ? `${peerProfile.age} yrs` : null,
           peerProfile?.city,
           peerProfile?.country

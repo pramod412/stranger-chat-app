@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Mic, MicOff, Video as VideoIcon, VideoOff, User } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Mic, MicOff, Video as VideoIcon, VideoOff, User, Sparkles, Volume2, VolumeX, Maximize2, Minimize2 } from 'lucide-react';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 import { useSocket } from '../../contexts/SocketContext';
 
@@ -17,6 +17,7 @@ export const VideoGrid = () => {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (localVideoRef.current && localStream) {
@@ -30,34 +31,19 @@ export const VideoGrid = () => {
     }
   }, [remoteStream]);
 
+  const strangerName = currentMatch?.peerDisplayName || 'Stranger';
+
   return (
     <div
+      className="video-stage"
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-        gap: '8px',
-        padding: '8px 12px',
-        background: 'rgba(10, 14, 23, 0.95)',
-        borderBottom: '2px solid var(--ink)',
-        maxHeight: '35vh',
-        overflow: 'hidden'
+        maxHeight: isExpanded ? '55vh' : undefined,
+        transition: 'max-height 0.25s ease'
       }}
     >
-      {/* Remote Stranger Video View */}
-      <div
-        style={{
-          position: 'relative',
-          background: '#07090e',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid var(--border-subtle)',
-          aspectRatio: '4/3'
-        }}
-      >
-        {remoteStream && peerMediaState.videoEnabled ? (
+      {/* 1. Remote Stranger Video Feed */}
+      <div className="video-frame" style={{ flex: 1.2 }}>
+        {remoteStream && peerMediaState?.videoEnabled !== false ? (
           <video
             ref={remoteVideoRef}
             autoPlay
@@ -65,131 +51,113 @@ export const VideoGrid = () => {
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         ) : (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+          <div style={{ textAlign: 'center', color: 'var(--parchment)', padding: '16px' }}>
             <div
               style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.05)',
+                width: '48px',
+                height: '48px',
+                background: 'rgba(240, 236, 223, 0.1)',
+                border: '1px solid rgba(240, 236, 223, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 10px auto'
+                margin: '0 auto 8px auto',
+                boxShadow: '1px 1px 0px rgba(0,0,0,0.5)'
               }}
             >
-              <User size={30} />
+              <User size={24} color="var(--parchment)" />
             </div>
-            <p style={{ fontSize: '0.85rem' }}>
-              {currentMatch ? `${currentMatch.peerDisplayName}'s Camera is Off` : 'Waiting for Video...'}
+            <p style={{ fontSize: '0.78rem', margin: 0, fontFamily: 'var(--font-mono)', opacity: 0.85 }}>
+              {currentMatch ? `${strangerName}'s Camera is Off` : 'Waiting for Stranger Video...'}
             </p>
           </div>
         )}
 
-        {/* Remote Overlay Badge */}
-        <div
+        {/* Remote Identifier Badge */}
+        <div className="video-badge-tag">
+          <span style={{ color: 'var(--rust-clay)', fontWeight: 800 }}>●</span>
+          <span>{strangerName}</span>
+          {peerMediaState?.audioEnabled === false && (
+            <MicOff size={11} color="var(--rust-clay)" style={{ marginLeft: '2px' }} />
+          )}
+        </div>
+
+        {/* Quick expand/minimize toggle on video stage */}
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
           style={{
             position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            background: 'rgba(0, 0, 0, 0.65)',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '0.75rem',
-            color: '#fff',
+            top: '8px',
+            right: '8px',
+            background: 'rgba(28, 26, 23, 0.8)',
+            border: '1px solid rgba(240, 236, 223, 0.4)',
+            color: 'var(--parchment)',
+            width: '28px',
+            height: '28px',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            justifyContent: 'center',
+            cursor: 'pointer',
+            zIndex: 5
           }}
+          title={isExpanded ? 'Compact video view' : 'Expand video view'}
         >
-          <span>{currentMatch?.peerDisplayName || 'Stranger'}</span>
-          {!peerMediaState.audioEnabled && <MicOff size={12} color="var(--accent-rose)" />}
-        </div>
+          {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+        </button>
       </div>
 
-      {/* Local User Video View */}
-      <div
-        style={{
-          position: 'relative',
-          background: '#07090e',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid var(--border-subtle)',
-          aspectRatio: '4/3'
-        }}
-      >
+      {/* 2. Local User Video Feed */}
+      <div className="video-frame" style={{ flex: 1 }}>
         {localStream && isVideoEnabled ? (
           <video
             ref={localVideoRef}
             autoPlay
             playsInline
             muted
-            style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transform: 'scaleX(-1)' // Mirror local view
+            }}
           />
         ) : (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+          <div style={{ textAlign: 'center', color: 'var(--parchment)', padding: '16px' }}>
             <div
               style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.05)',
+                width: '48px',
+                height: '48px',
+                background: 'rgba(240, 236, 223, 0.1)',
+                border: '1px solid rgba(240, 236, 223, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 10px auto'
+                margin: '0 auto 8px auto',
+                boxShadow: '1px 1px 0px rgba(0,0,0,0.5)'
               }}
             >
-              <User size={30} />
+              <User size={24} color="var(--parchment)" />
             </div>
-            <p style={{ fontSize: '0.85rem' }}>Your Camera is Off</p>
+            <p style={{ fontSize: '0.78rem', margin: 0, fontFamily: 'var(--font-mono)', opacity: 0.85 }}>
+              Your Camera is Off
+            </p>
           </div>
         )}
 
-        {/* Local Media Controls Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '10px',
-            background: 'rgba(0, 0, 0, 0.65)',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '0.75rem',
-            color: '#fff'
-          }}
-        >
+        {/* Local Identifier Badge */}
+        <div className="video-badge-tag">
+          <span style={{ color: 'var(--sage)', fontWeight: 800 }}>●</span>
           <span>You</span>
         </div>
 
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            right: '10px',
-            display: 'flex',
-            gap: '6px'
-          }}
-        >
+        {/* Local Ergonomic Control Overlay */}
+        <div className="video-controls-overlay">
           <button
             type="button"
             onClick={toggleAudio}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: isAudioEnabled ? 'rgba(255, 255, 255, 0.2)' : 'var(--accent-rose)',
-              border: 'none',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
-            title={isAudioEnabled ? 'Mute Mic' : 'Unmute Mic'}
+            className={`video-action-btn ${!isAudioEnabled ? 'active-off' : ''}`}
+            title={isAudioEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
           >
             {isAudioEnabled ? <Mic size={15} /> : <MicOff size={15} />}
           </button>
@@ -197,19 +165,8 @@ export const VideoGrid = () => {
           <button
             type="button"
             onClick={toggleVideo}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: isVideoEnabled ? 'rgba(255, 255, 255, 0.2)' : 'var(--accent-rose)',
-              border: 'none',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
-            title={isVideoEnabled ? 'Turn Off Cam' : 'Turn On Cam'}
+            className={`video-action-btn ${!isVideoEnabled ? 'active-off' : ''}`}
+            title={isVideoEnabled ? 'Turn Off Camera' : 'Turn On Camera'}
           >
             {isVideoEnabled ? <VideoIcon size={15} /> : <VideoOff size={15} />}
           </button>

@@ -1,6 +1,7 @@
 /**
  * Matchmaking Engine
- * Dual-tier matchmaking: Shared interest preference with automatic FIFO random fallback & blocklist filtering.
+ * 100% Completely Random Matching: Unbiased uniform random selection among all eligible waiting users.
+ * Optional profile details, tags, age, location, and metadata have zero impact on partner selection.
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -8,7 +9,7 @@ import { reportManager } from './safety/reportManager.js';
 
 export class MatchmakingQueue {
   constructor(onMatchFound) {
-    // Array of waiting user objects: { socketId, userId, tags: string[], joinedAt: number, fallbackReady: boolean }
+    // Array of waiting user objects: { socketId, userId, tags: string[], profile: object, joinedAt: number }
     this.waitingPool = [];
     
     // matchId -> { id: string, room: string, user1: object, user2: object, sharedTags: string[], startedAt: number }
@@ -23,8 +24,22 @@ export class MatchmakingQueue {
     // Metrics
     this.totalMatchesServed = 0;
 
-    // Background interval to handle fallback timeouts (users waiting > 4.5s become eligible for general matching)
+    // Background interval to process queue periodically
     this.sweepInterval = setInterval(() => this.processQueue(), 1000);
+  }
+
+  /**
+   * Helper to check if two queue entries can be matched
+   */
+  canPair(userA, userB) {
+    if (!userA || !userB) return false;
+    // Cannot match a socket with itself
+    if (userA.socketId === userB.socketId) return false;
+    // Cannot match a user with themselves (same userId across tabs/sessions)
+    if (userA.userId && userB.userId && userA.userId === userB.userId) return false;
+    // Cannot match blocked users
+    if (reportManager.isBlocked(userA.userId, userB.userId)) return false;
+    return true;
   }
 
   /**
@@ -35,6 +50,11 @@ export class MatchmakingQueue {
     this.dequeueUser(socketId);
     this.leaveCurrentMatch(socketId);
 
+    // Also remove any duplicate entry by userId to avoid stale/duplicate user records
+    if (userId) {
+      this.waitingPool = this.waitingPool.filter(u => u.userId !== userId);
+    }
+
     const tags = Array.isArray(rawTags) 
       ? rawTags.map(t => String(t).trim().toLowerCase()).filter(Boolean)
       : [];
@@ -42,17 +62,17 @@ export class MatchmakingQueue {
     const profile = typeof rawProfile === 'object' && rawProfile !== null ? {
       name: typeof rawProfile.name === 'string' ? rawProfile.name.trim().slice(0, 30) : '',
       age: rawProfile.age ? String(rawProfile.age).trim().slice(0, 3) : '',
+      gender: typeof (rawProfile.gender || rawProfile.sex) === 'string' ? (rawProfile.gender || rawProfile.sex).trim().slice(0, 20) : '',
       city: typeof rawProfile.city === 'string' ? rawProfile.city.trim().slice(0, 40) : '',
       country: typeof rawProfile.country === 'string' ? rawProfile.country.trim().slice(0, 40) : ''
-    } : { name: '', age: '', city: '', country: '' };
+    } : { name: '', age: '', gender: '', city: '', country: '' };
 
     const userEntry = {
       socketId,
       userId,
       tags,
       profile,
-      joinedAt: Date.now(),
-      fallbackReady: tags.length === 0 // If no tags, ready for general pool immediately
+      joinedAt: Date.now()
     };
 
     this.waitingPool.push(userEntry);
@@ -78,64 +98,51 @@ export class MatchmakingQueue {
   }
 
   /**
-   * Process the waiting pool to find suitable matches
+   * Process the waiting pool to find 100% random matches
+   * Completely random selection among all eligible waiting users.
+   * Zero bias, zero influence from profile, tags, age, location, gender, or metadata.
    */
   processQueue() {
-    const now = Date.now();
+    if (this.waitingPool.length < 2) return;
 
-    // Update fallbackReady flag for users who have waited > 2000ms
-    for (const user of this.waitingPool) {
-      if (!user.fallbackReady && now - user.joinedAt >= 2000) {
-        user.fallbackReady = true;
-      }
-    }
+    // Iterate and randomly pair eligible waiting users
+    while (this.waitingPool.length >= 2) {
+      // Pick a random user index from the waiting pool
+      const indexA = Math.floor(Math.random() * this.waitingPool.length);
+      const userA = this.waitingPool[indexA];
+      if (!userA) break;
 
-    // Step 1: Match by shared interest tags first
-    for (let i = 0; i < this.waitingPool.length; i++) {
-      const userA = this.waitingPool[i];
-      if (!userA || userA.tags.length === 0) continue;
-
-      for (let j = i + 1; j < this.waitingPool.length; j++) {
-        const userB = this.waitingPool[j];
-        if (!userB) continue;
-
-        // Never match a socket with itself or blocked users
-        if (userA.socketId === userB.socketId || reportManager.isBlocked(userA.userId, userB.userId)) {
-          continue;
-        }
-
-        // Check shared tags
-        const sharedTags = userA.tags.filter(tag => userB.tags.includes(tag));
-        if (sharedTags.length > 0) {
-          // Pair userA and userB!
-          this.waitingPool.splice(j, 1);
-          this.waitingPool.splice(i, 1);
-          this.createMatch(userA, userB, sharedTags);
-          return this.processQueue(); // Re-run for remaining pool
+      // Find all eligible partner candidates (preventing self-match, cross-tab self-match, blocked users)
+      const eligibleIndices = [];
+      for (let j = 0; j < this.waitingPool.length; j++) {
+        if (j !== indexA && this.canPair(userA, this.waitingPool[j])) {
+          eligibleIndices.push(j);
         }
       }
-    }
 
-    // Step 2: Match users eligible for random fallback
-    for (let i = 0; i < this.waitingPool.length; i++) {
-      const userA = this.waitingPool[i];
-      if (!userA || !userA.fallbackReady) continue;
-
-      for (let j = i + 1; j < this.waitingPool.length; j++) {
-        const userB = this.waitingPool[j];
-        if (!userB || !userB.fallbackReady) continue;
-
-        // Never match a socket with itself or blocked users
-        if (userA.socketId === userB.socketId || reportManager.isBlocked(userA.userId, userB.userId)) {
-          continue;
-        }
-
-        // Pair randomly
-        this.waitingPool.splice(j, 1);
-        this.waitingPool.splice(i, 1);
-        this.createMatch(userA, userB, []);
-        return this.processQueue();
+      // If no eligible partner available for userA, break loop
+      if (eligibleIndices.length === 0) {
+        break;
       }
+
+      // Pick one eligible partner uniformly at random
+      const randomCandidateIndex = eligibleIndices[Math.floor(Math.random() * eligibleIndices.length)];
+      const userB = this.waitingPool[randomCandidateIndex];
+
+      // Remove both users atomically (highest index first to maintain correct array indices)
+      const firstRemove = Math.max(indexA, randomCandidateIndex);
+      const secondRemove = Math.min(indexA, randomCandidateIndex);
+
+      this.waitingPool.splice(firstRemove, 1);
+      this.waitingPool.splice(secondRemove, 1);
+
+      // Compute shared tags purely for informational display in chat if both users specified matching topics
+      const sharedTags = (Array.isArray(userA.tags) && Array.isArray(userB.tags))
+        ? userA.tags.filter(tag => userB.tags.includes(tag))
+        : [];
+
+      // Create and dispatch the active match
+      this.createMatch(userA, userB, sharedTags);
     }
   }
 
@@ -215,3 +222,4 @@ export class MatchmakingQueue {
     clearInterval(this.sweepInterval);
   }
 }
+

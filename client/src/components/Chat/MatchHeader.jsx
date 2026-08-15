@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Flag, Ban, Video, MessageSquare, MapPin, Calendar } from 'lucide-react';
+import { User, Flag, Ban, Video, MessageSquare, MapPin, Calendar, Users } from 'lucide-react';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 
@@ -53,6 +53,26 @@ export const MatchHeader = ({ onOpenReport, onOpenBlock }) => {
             {isConnected && (
               <span className="badge-live" style={{ fontSize: '0.65rem', padding: '1px 5px' }}>
                 <span className="live-dot" /> Live
+              </span>
+            )}
+
+            {/* Sex / Gender Badge */}
+            {isConnected && peerProfile?.gender && (
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  background: 'var(--parchment)',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--ink)',
+                  padding: '1px 5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+              >
+                <Users size={10} color="var(--rust-clay)" /> {peerProfile.gender}
               </span>
             )}
 

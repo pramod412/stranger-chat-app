@@ -8,7 +8,7 @@ const SocketContext = createContext(null);
 function getOrCreateUserId() {
   let id = sessionStorage.getItem('nexus_user_id');
   if (!id) {
-    id = 'user_' + Math.random().toString(36).substring(2, 9);
+    id = 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
     sessionStorage.setItem('nexus_user_id', id);
   }
   return id;
@@ -27,9 +27,9 @@ export const SocketProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('nexus_user_profile');
-      return saved ? JSON.parse(saved) : { name: '', age: '', city: '', country: '' };
+      return saved ? JSON.parse(saved) : { name: '', age: '', gender: '', city: '', country: '' };
     } catch {
-      return { name: '', age: '', city: '', country: '' };
+      return { name: '', age: '', gender: '', city: '', country: '' };
     }
   });
 

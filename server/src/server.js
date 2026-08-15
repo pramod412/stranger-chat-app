@@ -7,17 +7,30 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { MatchmakingQueue } from './matchmaking.js';
 import { contentFilter } from './safety/filter.js';
 import { rateLimiter } from './safety/rateLimiter.js';
 import { reportManager } from './safety/reportManager.js';
+import { feedbackManager } from './safety/feedbackManager.js';
 import { setupWebRTCSignaling } from './signaling.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Serve production frontend assets if available
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+}
 
 const io = new Server(server, {
   cors: {
@@ -29,6 +42,20 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 4000;
+
+// Function to compute and broadcast real-time platform statistics
+const getOnlineCount = () => {
+  return io.sockets?.sockets?.size || 0;
+};
+
+const broadcastStats = () => {
+  const stats = {
+    onlineUsers: getOnlineCount(),
+    ...matchmaking.getStats()
+  };
+  io.emit('stats:update', stats);
+  return stats;
+};
 
 // Matchmaking Queue instance
 const matchmaking = new MatchmakingQueue((match) => {
@@ -75,15 +102,14 @@ const matchmaking = new MatchmakingQueue((match) => {
       isInitiator: false
     });
   }
+
+  // Real-time update for stats
+  broadcastStats();
 });
 
-// Periodic broadcast of platform stats
+// Periodic heartbeat broadcast of platform stats
 setInterval(() => {
-  const stats = {
-    onlineUsers: io.engine.clientsCount || 0,
-    ...matchmaking.getStats()
-  };
-  io.emit('stats:update', stats);
+  broadcastStats();
 }, 3000);
 
 // --- REST Endpoints ---
@@ -93,7 +119,7 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/stats', (req, res) => {
   res.json({
-    onlineUsers: io.engine.clientsCount || 0,
+    onlineUsers: getOnlineCount(),
     ...matchmaking.getStats()
   });
 });
@@ -120,6 +146,54 @@ app.post('/api/admin/reports/:id/action', (req, res) => {
   res.json({ success: true, report });
 });
 
+// User Feedback Endpoints
+app.post('/api/feedback', (req, res) => {
+  const { userId, category, rating, comment, email, clientInfo } = req.body;
+
+  if (!comment || typeof comment !== 'string' || !comment.trim()) {
+    return res.status(400).json({ error: 'Please provide feedback comments before submitting.' });
+  }
+
+  try {
+    const feedback = feedbackManager.addFeedback({
+      userId,
+      category,
+      rating,
+      comment,
+      email,
+      clientInfo
+    });
+
+    res.json({
+      success: true,
+      message: 'Thank you for your feedback! Your submission helps improve Stranger Chat.',
+      feedback
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to record feedback.' });
+  }
+});
+
+app.get('/api/admin/feedback', (req, res) => {
+  const { category } = req.query;
+  res.json({
+    feedbacks: feedbackManager.getAllFeedback(category),
+    stats: feedbackManager.getFeedbackStats()
+  });
+});
+
+app.post('/api/admin/feedback/:id/status', (req, res) => {
+  const { id } = req.params;
+  const { status, notes } = req.body;
+
+  const feedback = feedbackManager.updateFeedbackStatus(id, status, notes);
+  if (!feedback) {
+    return res.status(404).json({ error: 'Feedback entry not found' });
+  }
+
+  res.json({ success: true, feedback });
+});
+
 // --- Socket.IO Event Handlers ---
 io.on('connection', (socket) => {
   let userSessionId = socket.handshake.query.userId || socket.id;
@@ -133,11 +207,8 @@ io.on('connection', (socket) => {
   // WebRTC signaling setup
   setupWebRTCSignaling(io, socket, matchmaking);
 
-  // Send initial stats on connect
-  socket.emit('stats:update', {
-    onlineUsers: io.engine.clientsCount || 0,
-    ...matchmaking.getStats()
-  });
+  // Broadcast updated stats immediately on new connection
+  broadcastStats();
 
   // 1. Join matchmaking queue
   socket.on('queue:join', ({ userId, tags, profile }) => {
@@ -154,12 +225,14 @@ io.on('connection', (socket) => {
     if (matchmaking.isUserWaiting(socket.id)) {
       socket.emit('queue:status', { status: 'searching' });
     }
+    broadcastStats();
   });
 
   // 2. Leave matchmaking queue (cancel search)
   socket.on('queue:leave', () => {
     matchmaking.dequeueUser(socket.id);
     socket.emit('queue:status', { status: 'idle' });
+    broadcastStats();
   });
 
   // 3. Send text chat message
@@ -234,6 +307,7 @@ io.on('connection', (socket) => {
     if (matchmaking.isUserWaiting(socket.id)) {
       socket.emit('queue:status', { status: 'searching' });
     }
+    broadcastStats();
   });
 
   // 6. Stop / Leave chat (back to idle landing)
@@ -245,6 +319,7 @@ io.on('connection', (socket) => {
     }
     matchmaking.dequeueUser(socket.id);
     socket.emit('queue:status', { status: 'idle' });
+    broadcastStats();
   });
 
   // 7. Safety: Report incident
@@ -288,6 +363,7 @@ io.on('connection', (socket) => {
       matchmaking.leaveCurrentMatch(socket.id);
       io.to(partnerSocketId).emit('partner:left', { reason: 'Stranger has left.' });
       socket.emit('safety:blocked_ack', { success: true, message: 'User blocked. You will not be matched with them again.' });
+      broadcastStats();
     }
   });
 
@@ -300,8 +376,19 @@ io.on('connection', (socket) => {
     }
     matchmaking.dequeueUser(socket.id);
     rateLimiter.cleanup(socket.id);
+    broadcastStats();
   });
 });
+
+// SPA fallback for HTML5 client-side routing
+if (fs.existsSync(clientDistPath)) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 server.listen(PORT, () => {
   console.log(`🚀 Stranger Chat Backend Server listening on port ${PORT}`);
