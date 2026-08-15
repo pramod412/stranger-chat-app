@@ -120,18 +120,18 @@ export function App() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
+          padding: '0 16px',
           position: 'sticky',
           top: 0,
           zIndex: 50,
           boxShadow: '0 2px 0px rgba(0, 0, 0, 0.05)'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => window.location.reload()}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', minWidth: 0 }} onClick={() => window.location.reload()}>
           <div
             style={{
-              width: '34px',
-              height: '34px',
+              width: '32px',
+              height: '32px',
               background: 'var(--accent)',
               color: 'var(--on-accent)',
               border: '2px solid var(--border)',
@@ -143,57 +143,56 @@ export function App() {
               flexShrink: 0
             }}
           >
-            <MessageSquare size={18} />
+            <MessageSquare size={16} />
           </div>
-          <div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.05rem, 3.5vw, 1.25rem)', color: 'var(--text-primary)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+          <div style={{ minWidth: 0 }}>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(0.95rem, 3.5vw, 1.25rem)', color: 'var(--text-primary)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
               STRANGER CHAT
             </span>
           </div>
         </div>
 
         {/* Center Tagline in Sans-serif */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="tagline-container" style={{ display: 'flex', alignItems: 'center' }}>
           <span className="tagline-text">
             talk to random strangers online
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           {/* Dark Mode Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
             className="btn btn-subtle"
-            style={{ padding: '6px 10px', fontSize: '0.78rem', gap: '5px' }}
+            style={{ padding: '6px 9px', fontSize: '0.78rem', minHeight: '34px' }}
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? <Sun size={15} color="var(--coral)" /> : <Moon size={15} color="var(--purple)" />}
-            <span style={{ display: 'none' }}>Theme</span>
           </button>
 
           {/* Feedback Trigger */}
           <button
             type="button"
             onClick={() => setShowFeedback(true)}
-            className="btn btn-subtle"
-            style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap', gap: '6px' }}
+            className="btn btn-subtle header-action-btn"
+            style={{ fontSize: '0.78rem', padding: '6px 10px', whiteSpace: 'nowrap', gap: '5px', minHeight: '34px' }}
             title="Share suggestions, bugs, or feedback"
           >
             <MessageSquareHeart size={14} color="var(--pink)" />
-            <span>Feedback</span>
+            <span className="header-action-label">Feedback</span>
           </button>
 
           {/* Admin Dashboard */}
           <button
             type="button"
             onClick={() => setShowAdmin(true)}
-            className="btn btn-subtle"
-            style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
+            className="btn btn-subtle header-action-btn"
+            style={{ fontSize: '0.78rem', padding: '6px 10px', whiteSpace: 'nowrap', gap: '5px', minHeight: '34px' }}
           >
             <Shield size={14} color="var(--teal)" />
-            <span>Admin</span>
+            <span className="header-action-label">Admin</span>
           </button>
         </div>
       </header>

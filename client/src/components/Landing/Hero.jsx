@@ -49,19 +49,20 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
       </div>
 
       {/* Hero Title */}
-      <div style={{ marginBottom: '8px' }}>
+      <div style={{ marginBottom: '8px', width: '100%' }}>
         <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '6px' }}>
           ANONYMOUS 1-ON-1 MATCHMAKING
         </span>
         <h1
           style={{
-            fontSize: 'clamp(2.4rem, 6vw, 4rem)',
-            lineHeight: 1.08,
+            fontSize: 'clamp(1.8rem, 6.5vw, 3.8rem)',
+            lineHeight: 1.1,
             fontWeight: 900,
             fontFamily: 'var(--font-heading)',
             color: 'var(--text-primary)',
             letterSpacing: '-0.02em',
-            textTransform: 'uppercase'
+            textTransform: 'uppercase',
+            wordBreak: 'break-word'
           }}
         >
           TALK TO STRANGERS
@@ -70,12 +71,13 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
 
       <p
         style={{
-          fontSize: 'clamp(0.95rem, 2vw, 1.12rem)',
+          fontSize: 'clamp(0.9rem, 2.8vw, 1.1rem)',
           color: 'var(--text-secondary)',
           maxWidth: '620px',
-          marginBottom: '24px',
-          lineHeight: 1.5,
-          fontFamily: 'var(--font-sans)'
+          marginBottom: '20px',
+          lineHeight: 1.45,
+          fontFamily: 'var(--font-sans)',
+          padding: '0 8px'
         }}
       >
         Chat with random people around the world. No login needed. Private and anonymous.

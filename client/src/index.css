@@ -93,6 +93,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -128,8 +129,8 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-surface-muted);
@@ -171,6 +172,14 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: normal;
 }
 
+/* Responsive Button Labels */
+.btn-label-desktop {
+  display: inline;
+}
+.btn-label-mobile {
+  display: none;
+}
+
 /* Glassmorphism / Panels */
 .glass-panel {
   background: var(--bg-surface);
@@ -188,7 +197,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 18px;
   font-size: 0.9rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -267,7 +276,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--accent);
   color: var(--on-accent);
   font-weight: 700;
-  padding: 10px 20px;
+  padding: 10px 18px;
   font-size: 0.92rem;
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
@@ -348,26 +357,29 @@ h1, h2, h3, h4, h5, h6 {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 22, 26, 0.7);
+  background: rgba(20, 22, 26, 0.75);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .modal-content {
   background: var(--bg-surface);
   border: 2px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 28px;
+  padding: 24px;
   width: 100%;
   max-width: 520px;
   box-shadow: var(--shadow-lg);
   position: relative;
   color: var(--text-primary);
+  max-height: 88dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Tag Pills */
@@ -386,6 +398,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-surface-muted);
   color: var(--text-primary);
   user-select: none;
+  flex-shrink: 0;
 }
 .tag-pill:hover {
   cursor: pointer;
@@ -435,6 +448,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.82rem;
   font-weight: 700;
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 .live-dot-pulse {
@@ -444,6 +458,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--success);
   display: inline-block;
   animation: pulse-dot 1.8s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 @keyframes pulse-dot {
@@ -460,8 +475,9 @@ input[type="text"], input[type="number"], textarea, select {
   border-radius: var(--radius-md) !important;
   box-shadow: var(--shadow-sm) !important;
   font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-size: 16px !important; /* Ensure 16px on iOS to avoid auto-zoom */
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  max-width: 100%;
 }
 input[type="text"]:focus, textarea:focus, select:focus {
   outline: none !important;
@@ -510,6 +526,7 @@ button, input, select, textarea, .tag-pill {
   flex-direction: column;
   overflow-x: hidden;
   background-color: var(--bg-page);
+  width: 100%;
 }
 
 .chat-shell {
@@ -646,19 +663,16 @@ button, input, select, textarea, .tag-pill {
 }
 
 @media (max-width: 768px) {
-  input[type="text"], input[type="number"], textarea, select {
-    font-size: 16px !important;
-  }
-
   .chat-shell {
     padding: 0;
-    height: calc(100vh - 54px);
-    height: calc(100dvh - 54px);
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
   }
 
   .chat-panel {
     border-radius: 0;
-    border: none;
+    border-left: none;
+    border-right: none;
     box-shadow: none;
   }
 
@@ -669,18 +683,18 @@ button, input, select, textarea, .tag-pill {
   }
 
   .video-frame {
-    aspect-ratio: 4/3;
-    min-height: 120px;
-    max-height: 28vh;
+    aspect-ratio: 16/9;
+    min-height: 110px;
+    max-height: 26vh;
     border-radius: var(--radius-md);
   }
 
   .modal-backdrop {
-    padding: 10px;
+    padding: 12px;
   }
 
   .modal-content {
-    padding: 20px 16px;
+    padding: 18px 14px;
     max-height: 90dvh;
     overflow-y: auto;
     border-radius: var(--radius-lg);
@@ -693,51 +707,89 @@ button, input, select, textarea, .tag-pill {
   }
 
   .btn-skip {
-    padding: 10px 16px;
-    font-size: 0.88rem;
+    padding: 9px 14px;
+    font-size: 0.86rem;
   }
 
   .tag-pill {
-    padding: 6px 12px;
-    font-size: 0.82rem;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+  }
+
+  .radar-circle-accent,
+  .radar-circle-teal {
+    width: 110px;
+    height: 110px;
   }
 }
 
 @media (max-width: 640px) {
   .nav-header {
-    padding: 0 14px !important;
-    height: 54px !important;
+    padding: 0 12px !important;
+    height: 56px !important;
   }
 
-  .tagline-text {
+  .tagline-container {
     display: none !important;
+  }
+
+  .header-action-label {
+    display: none !important;
+  }
+
+  .header-action-btn {
+    padding: 6px 9px !important;
+  }
+
+  .btn-label-desktop {
+    display: none !important;
+  }
+
+  .btn-label-mobile {
+    display: inline !important;
   }
 
   .toast-container {
     left: 12px !important;
     right: 12px !important;
-    bottom: 72px !important;
+    bottom: 68px !important;
     justify-content: center !important;
     text-align: center !important;
   }
 }
 
 @media (max-width: 480px) {
+  .hero-card {
+    padding: 16px 12px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
   .btn {
     padding: 8px 12px;
     font-size: 0.82rem;
   }
 
   .btn-skip {
-    padding: 9px 14px;
+    padding: 8px 12px;
     font-size: 0.84rem;
   }
 
-  .hero-card {
-    padding: 18px 14px !important;
+  .video-frame {
+    max-height: 22vh;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-header {
+    padding: 0 8px !important;
   }
 
-  .video-frame {
-    max-height: 24vh;
+  .hero-card {
+    padding: 14px 10px !important;
+  }
+
+  .btn {
+    padding: 7px 10px;
+    font-size: 0.8rem;
   }
 }
