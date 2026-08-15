@@ -81,7 +81,12 @@ export const SocketProvider = ({ children }) => {
     });
 
     s.on('match:found', (match) => {
-      setCurrentMatch(match);
+      const normalizedMatch = {
+        ...match,
+        id: match.matchId || match.id,
+        matchId: match.matchId || match.id
+      };
+      setCurrentMatch(normalizedMatch);
       setMatchState('connected');
       setMessages([]);
       setIsPeerTyping(false);
