@@ -22,8 +22,15 @@ export const WebRTCProvider = ({ children }) => {
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
+  const remoteStreamRef = useRef(null);
+  const activeMatchIdRef = useRef(null);
   const iceCandidatesQueue = useRef([]);
   const isSettingUpRef = useRef(false);
+
+  // Keep activeMatchIdRef synchronized
+  useEffect(() => {
+    activeMatchIdRef.current = currentMatch?.id || null;
+  }, [currentMatch]);
 
   // Virtual canvas stream fallback for environments without physical camera
   const createVirtualStream = useCallback(() => {
@@ -110,6 +117,48 @@ export const WebRTCProvider = ({ children }) => {
     }
   }, [createVirtualStream]);
 
+  // Teardown WebRTC peer connection and strictly terminate remote stream
+  const closePeerConnection = useCallback(() => {
+    // 1. Explicitly stop and discard all tracks in remoteStream
+    if (remoteStreamRef.current) {
+      try {
+        remoteStreamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+      } catch (e) {
+        console.warn('Error stopping remote tracks:', e);
+      }
+      remoteStreamRef.current = null;
+    }
+    setRemoteStream(null);
+
+    // 2. Teardown Peer Connection and remove sender/receiver tracks
+    if (pcRef.current) {
+      try {
+        pcRef.current.getSenders().forEach((s) => {
+          try {
+            pcRef.current.removeTrack(s);
+          } catch (e) {}
+        });
+        pcRef.current.getReceivers().forEach((r) => {
+          try {
+            if (r.track) r.track.stop();
+          } catch (e) {}
+        });
+      } catch (e) {}
+
+      pcRef.current.onicecandidate = null;
+      pcRef.current.ontrack = null;
+      pcRef.current.oniceconnectionstatechange = null;
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+
+    iceCandidatesQueue.current = [];
+    setPeerMediaState({ videoEnabled: true, audioEnabled: true });
+    isSettingUpRef.current = false;
+  }, []);
+
   // Clean up media when exiting video mode
   const cleanupMedia = useCallback(() => {
     if (localStreamRef.current) {
@@ -118,84 +167,84 @@ export const WebRTCProvider = ({ children }) => {
       setLocalStream(null);
     }
     closePeerConnection();
-  }, []);
+  }, [closePeerConnection]);
 
-  // Teardown WebRTC peer connection
-  const closePeerConnection = useCallback(() => {
-    if (pcRef.current) {
-      pcRef.current.onicecandidate = null;
-      pcRef.current.ontrack = null;
-      pcRef.current.oniceconnectionstatechange = null;
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-    iceCandidatesQueue.current = [];
-    setRemoteStream(null);
-    setPeerMediaState({ videoEnabled: true, audioEnabled: true });
-    isSettingUpRef.current = false;
-  }, []);
-
-  // Initialize WebRTC session
+  // Initialize WebRTC session for a newly matched stranger
   const initWebRTCSession = useCallback(async () => {
     if (!socket || !videoMode || matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
       return;
     }
 
+    const sessionMatchId = currentMatch.id;
     if (isSettingUpRef.current) return;
     isSettingUpRef.current = true;
 
     try {
+      // 1. Cleanly terminate any prior connection
       closePeerConnection();
 
-      // 1. Ensure local stream is ready before creating peer connection
+      // 2. Ensure local stream is ready
       const stream = await ensureLocalStream();
-      if (!stream || matchState !== 'connected') {
+      if (!stream || matchState !== 'connected' || activeMatchIdRef.current !== sessionMatchId) {
         isSettingUpRef.current = false;
         return;
       }
 
-      // 2. Instantiate RTCPeerConnection
+      // 3. Instantiate fresh RTCPeerConnection
       const pc = new RTCPeerConnection(RTC_CONFIG);
       pcRef.current = pc;
 
-      // 3. Add local tracks
+      // 4. Add local tracks
       stream.getTracks().forEach((track) => {
         pc.addTrack(track, stream);
       });
 
-      // 4. Handle ICE Candidates
+      // 5. Handle ICE Candidates with matchId validation
       pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          socket.emit('webrtc:ice-candidate', { candidate: event.candidate });
+        if (event.candidate && activeMatchIdRef.current === sessionMatchId) {
+          socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: sessionMatchId });
         }
       };
 
-      // 5. Handle Incoming Remote Stream
+      // 6. Handle Incoming Remote Stream
       pc.ontrack = (event) => {
+        if (activeMatchIdRef.current !== sessionMatchId) return; // Discard stale tracks
+
+        let inboundStream;
         if (event.streams && event.streams[0]) {
-          setRemoteStream(event.streams[0]);
+          inboundStream = event.streams[0];
         } else if (event.track) {
-          const inboundStream = new MediaStream([event.track]);
+          inboundStream = new MediaStream([event.track]);
+        }
+
+        if (inboundStream) {
+          remoteStreamRef.current = inboundStream;
           setRemoteStream(inboundStream);
         }
       };
 
-      // 6. Handle Connection State
+      // 7. Handle Connection State / Disconnection
       pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-          console.log('WebRTC ICE connection state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+          // Immediately terminate remote stream on disconnect/failure
+          if (remoteStreamRef.current) {
+            remoteStreamRef.current.getTracks().forEach((t) => t.stop());
+            remoteStreamRef.current = null;
+          }
+          setRemoteStream(null);
         }
       };
 
-      // 7. If initiator, create and dispatch SDP offer
+      // 8. If initiator, create and dispatch SDP offer
       if (currentMatch.isInitiator) {
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
           offerToReceiveVideo: true
         });
+        if (activeMatchIdRef.current !== sessionMatchId) return; // Abort if match changed
         await pc.setLocalDescription(offer);
-        socket.emit('webrtc:offer', { offer });
+        socket.emit('webrtc:offer', { offer, matchId: sessionMatchId });
       }
     } catch (err) {
       console.error('Error initializing WebRTC session:', err);
@@ -204,20 +253,25 @@ export const WebRTCProvider = ({ children }) => {
     }
   }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection]);
 
-  // Trigger media initialization on videoMode toggle or match changes
+  // Clean termination whenever matchState changes or when currentMatch resets
   useEffect(() => {
-    if (videoMode && matchState === 'connected' && currentMatch) {
-      initWebRTCSession();
-    } else if (!videoMode) {
+    if (matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
+    } else if (videoMode && matchState === 'connected' && currentMatch) {
+      initWebRTCSession();
     }
-  }, [videoMode, matchState, currentMatch, initWebRTCSession, closePeerConnection]);
+  }, [matchState, currentMatch?.id, videoMode, initWebRTCSession, closePeerConnection]);
 
-  // Socket signaling event listeners
+  // Socket signaling event listeners with strict matchId validation
   useEffect(() => {
     if (!socket) return;
 
-    const handleOffer = async ({ offer }) => {
+    const handleOffer = async ({ offer, matchId }) => {
+      // Validate that offer belongs to current active session
+      if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) {
+        return; // Reject stale signaling from previous stranger
+      }
+
       try {
         const stream = await ensureLocalStream();
         if (!pcRef.current) {
@@ -232,15 +286,16 @@ export const WebRTCProvider = ({ children }) => {
 
           pc.onicecandidate = (event) => {
             if (event.candidate) {
-              socket.emit('webrtc:ice-candidate', { candidate: event.candidate });
+              socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: activeMatchIdRef.current });
             }
           };
 
           pc.ontrack = (event) => {
-            if (event.streams && event.streams[0]) {
-              setRemoteStream(event.streams[0]);
-            } else if (event.track) {
-              setRemoteStream(new MediaStream([event.track]));
+            if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
+            let inboundStream = event.streams?.[0] || (event.track ? new MediaStream([event.track]) : null);
+            if (inboundStream) {
+              remoteStreamRef.current = inboundStream;
+              setRemoteStream(inboundStream);
             }
           };
         }
@@ -260,13 +315,14 @@ export const WebRTCProvider = ({ children }) => {
 
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit('webrtc:answer', { answer });
+        socket.emit('webrtc:answer', { answer, matchId: activeMatchIdRef.current });
       } catch (err) {
         console.error('Error handling WebRTC offer:', err);
       }
     };
 
-    const handleAnswer = async ({ answer }) => {
+    const handleAnswer = async ({ answer, matchId }) => {
+      if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
       if (!pcRef.current) return;
       try {
         await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
@@ -285,7 +341,8 @@ export const WebRTCProvider = ({ children }) => {
       }
     };
 
-    const handleCandidate = async ({ candidate }) => {
+    const handleCandidate = async ({ candidate, matchId }) => {
+      if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
       if (!candidate) return;
       const pc = pcRef.current;
       if (pc && pc.remoteDescription && pc.remoteDescription.type) {
@@ -299,14 +356,16 @@ export const WebRTCProvider = ({ children }) => {
       }
     };
 
-    const handlePeerMediaState = ({ videoEnabled, audioEnabled }) => {
+    const handlePeerMediaState = ({ videoEnabled, audioEnabled, matchId }) => {
+      if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
       setPeerMediaState({
         videoEnabled: videoEnabled !== false,
         audioEnabled: audioEnabled !== false
       });
     };
 
-    const handlePeerVideoToggle = ({ enabled }) => {
+    const handlePeerVideoToggle = ({ enabled, matchId }) => {
+      if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
       if (enabled && !videoMode) {
         setVideoMode(true);
       }
@@ -336,7 +395,8 @@ export const WebRTCProvider = ({ children }) => {
         setIsVideoEnabled(videoTrack.enabled);
         socket?.emit('webrtc:media-state', {
           videoEnabled: videoTrack.enabled,
-          audioEnabled: isAudioEnabled
+          audioEnabled: isAudioEnabled,
+          matchId: activeMatchIdRef.current
         });
       }
     }
@@ -351,7 +411,8 @@ export const WebRTCProvider = ({ children }) => {
         setIsAudioEnabled(audioTrack.enabled);
         socket?.emit('webrtc:media-state', {
           videoEnabled: isVideoEnabled,
-          audioEnabled: audioTrack.enabled
+          audioEnabled: audioTrack.enabled,
+          matchId: activeMatchIdRef.current
         });
       }
     }
@@ -361,7 +422,7 @@ export const WebRTCProvider = ({ children }) => {
   const handleSetVideoMode = useCallback((val) => {
     setVideoMode(val);
     if (socket && matchState === 'connected') {
-      socket.emit('video:toggle', { enabled: Boolean(val) });
+      socket.emit('video:toggle', { enabled: Boolean(val), matchId: activeMatchIdRef.current });
     }
   }, [socket, matchState]);
 
@@ -378,7 +439,8 @@ export const WebRTCProvider = ({ children }) => {
         mediaError,
         toggleVideo,
         toggleAudio,
-        ensureLocalStream
+        ensureLocalStream,
+        closePeerConnection
       }}
     >
       {children}

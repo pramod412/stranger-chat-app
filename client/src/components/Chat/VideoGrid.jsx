@@ -13,7 +13,7 @@ export const VideoGrid = () => {
     toggleVideo,
     toggleAudio
   } = useWebRTC();
-  const { currentMatch } = useSocket();
+  const { currentMatch, matchState } = useSocket();
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -22,32 +22,46 @@ export const VideoGrid = () => {
   // Bind local stream and ensure play() is executed
   useEffect(() => {
     const videoEl = localVideoRef.current;
-    if (videoEl && localStream) {
-      if (videoEl.srcObject !== localStream) {
-        videoEl.srcObject = localStream;
+    if (videoEl) {
+      if (localStream) {
+        if (videoEl.srcObject !== localStream) {
+          videoEl.srcObject = localStream;
+        }
+        videoEl.play().catch((err) => {
+          console.log('Local video play notice:', err?.name);
+        });
+      } else {
+        videoEl.srcObject = null;
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
       }
-      videoEl.play().catch((err) => {
-        // Autoplay policy or abort handling
-        console.log('Local video play notice:', err?.name);
-      });
     }
   }, [localStream, isVideoEnabled]);
 
-  // Bind remote stream and ensure play() is executed
+  // Bind remote stream with immediate termination and memory buffer purge
   useEffect(() => {
     const videoEl = remoteVideoRef.current;
-    if (videoEl && remoteStream) {
-      if (videoEl.srcObject !== remoteStream) {
-        videoEl.srcObject = remoteStream;
+    if (videoEl) {
+      if (remoteStream && matchState === 'connected') {
+        if (videoEl.srcObject !== remoteStream) {
+          videoEl.srcObject = remoteStream;
+        }
+        videoEl.play().catch((err) => {
+          console.log('Remote video play notice:', err?.name);
+        });
+      } else {
+        // Immediate termination: drop srcObject, pause, and purge frame buffer
+        videoEl.srcObject = null;
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
       }
-      videoEl.play().catch((err) => {
-        console.log('Remote video play notice:', err?.name);
-      });
     }
-  }, [remoteStream, peerMediaState?.videoEnabled]);
+  }, [remoteStream, peerMediaState?.videoEnabled, matchState]);
 
   const strangerName = currentMatch?.peerDisplayName || 'Stranger';
-  const isRemoteVideoActive = remoteStream && peerMediaState?.videoEnabled !== false;
+  const isRemoteVideoActive = remoteStream && peerMediaState?.videoEnabled !== false && matchState === 'connected';
   const isLocalVideoActive = localStream && isVideoEnabled;
 
   return (
@@ -104,7 +118,7 @@ export const VideoGrid = () => {
               <User size={24} color="var(--parchment)" />
             </div>
             <p style={{ fontSize: '0.78rem', margin: 0, fontFamily: 'var(--font-mono)', opacity: 0.85 }}>
-              {currentMatch ? `${strangerName}'s Camera is Off` : 'Waiting for Stranger Video...'}
+              {currentMatch && matchState === 'connected' ? `${strangerName}'s Camera is Off` : 'Waiting for Stranger Video...'}
             </p>
           </div>
         )}
