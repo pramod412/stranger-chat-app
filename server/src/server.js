@@ -1,6 +1,8 @@
 /**
  * Random Stranger Chat Platform - Backend Server Entrypoint
  * Express API + Socket.IO Real-time Engine
+ * Hardened for production deployment with security headers, payload boundaries,
+ * rate limiting, and strict input validation.
  */
 
 import express from 'express';
@@ -23,8 +25,20 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: '*' }));
-app.use(express.json());
+// Production Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self)');
+  next();
+});
+
+// Configure CORS and bounded payload parsing
+const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: '64kb' }));
 
 // Serve production frontend assets if available
 const clientDistPath = path.resolve(__dirname, '../../client/dist');
@@ -34,9 +48,10 @@ if (fs.existsSync(clientDistPath)) {
 
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: allowedOrigins,
     methods: ['GET', 'POST']
   },
+  maxHttpBufferSize: 1e5, // 100 KB max socket packet size to prevent buffer overflow attacks
   pingTimeout: 20000,
   pingInterval: 10000
 });
@@ -108,9 +123,34 @@ const matchmaking = new MatchmakingQueue((match) => {
 });
 
 // Periodic heartbeat broadcast of platform stats
-setInterval(() => {
+const heartbeatInterval = setInterval(() => {
   broadcastStats();
 }, 3000);
+
+// In-Memory REST Rate Limiter for Feedback API
+const feedbackRateMap = new Map();
+const checkFeedbackRateLimit = (ip) => {
+  const now = Date.now();
+  const timestamps = (feedbackRateMap.get(ip) || []).filter(t => now - t < 60000); // 1 minute window
+  if (timestamps.length >= 6) {
+    return false;
+  }
+  timestamps.push(now);
+  feedbackRateMap.set(ip, timestamps);
+  return true;
+};
+
+// Admin authentication middleware (if ADMIN_TOKEN configured)
+const requireAdminAuth = (req, res, next) => {
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (adminToken) {
+    const token = req.headers['x-admin-token'] || req.query.token;
+    if (!token || token !== adminToken) {
+      return res.status(401).json({ error: 'Unauthorized: Valid admin credentials required.' });
+    }
+  }
+  next();
+};
 
 // --- REST Endpoints ---
 app.get('/api/health', (req, res) => {
@@ -124,13 +164,13 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-app.get('/api/admin/reports', (req, res) => {
+app.get('/api/admin/reports', requireAdminAuth, (req, res) => {
   res.json({
     reports: reportManager.getAllReports()
   });
 });
 
-app.post('/api/admin/reports/:id/action', (req, res) => {
+app.post('/api/admin/reports/:id/action', requireAdminAuth, (req, res) => {
   const { id } = req.params;
   const { status, action, notes } = req.body;
 
@@ -148,19 +188,28 @@ app.post('/api/admin/reports/:id/action', (req, res) => {
 
 // User Feedback Endpoints
 app.post('/api/feedback', (req, res) => {
+  const clientIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  if (!checkFeedbackRateLimit(clientIp)) {
+    return res.status(429).json({ error: 'Too many feedback requests. Please wait a minute before trying again.' });
+  }
+
   const { userId, category, rating, comment, email, clientInfo } = req.body;
 
   if (!comment || typeof comment !== 'string' || !comment.trim()) {
     return res.status(400).json({ error: 'Please provide feedback comments before submitting.' });
   }
 
+  if (comment.length > 1500) {
+    return res.status(400).json({ error: 'Feedback comment is too long (maximum 1500 characters).' });
+  }
+
   try {
     const feedback = feedbackManager.addFeedback({
-      userId,
+      userId: typeof userId === 'string' ? userId.slice(0, 64) : 'anonymous',
       category,
       rating,
       comment,
-      email,
+      email: typeof email === 'string' ? email.slice(0, 100) : '',
       clientInfo
     });
 
@@ -174,7 +223,7 @@ app.post('/api/feedback', (req, res) => {
   }
 });
 
-app.get('/api/admin/feedback', (req, res) => {
+app.get('/api/admin/feedback', requireAdminAuth, (req, res) => {
   const { category } = req.query;
   res.json({
     feedbacks: feedbackManager.getAllFeedback(category),
@@ -182,7 +231,7 @@ app.get('/api/admin/feedback', (req, res) => {
   });
 });
 
-app.post('/api/admin/feedback/:id/status', (req, res) => {
+app.post('/api/admin/feedback/:id/status', requireAdminAuth, (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
 
@@ -196,7 +245,9 @@ app.post('/api/admin/feedback/:id/status', (req, res) => {
 
 // --- Socket.IO Event Handlers ---
 io.on('connection', (socket) => {
-  let userSessionId = socket.handshake.query.userId || socket.id;
+  let userSessionId = typeof socket.handshake.query.userId === 'string' && socket.handshake.query.userId.length <= 64
+    ? socket.handshake.query.userId
+    : socket.id;
 
   if (rateLimiter.isBanned(userSessionId)) {
     socket.emit('error:banned', { reason: 'Your access has been suspended due to community guidelines violations.' });
@@ -211,15 +262,18 @@ io.on('connection', (socket) => {
   broadcastStats();
 
   // 1. Join matchmaking queue
-  socket.on('queue:join', ({ userId, tags, profile }) => {
-    userSessionId = userId || socket.id;
+  socket.on('queue:join', (payload = {}) => {
+    const { userId, tags, profile } = payload;
+    const sanitizedUserId = typeof userId === 'string' && userId.length <= 64 ? userId : socket.id;
+    userSessionId = sanitizedUserId;
 
     if (rateLimiter.isBanned(userSessionId)) {
       socket.emit('error:banned', { reason: 'Account suspended.' });
       return;
     }
 
-    matchmaking.enqueueUser(socket.id, userSessionId, tags, profile);
+    const safeTags = Array.isArray(tags) ? tags.slice(0, 15) : [];
+    matchmaking.enqueueUser(socket.id, userSessionId, safeTags, profile || {});
     
     // Only inform client of 'searching' if they are actually waiting in queue (not immediately matched)
     if (matchmaking.isUserWaiting(socket.id)) {
@@ -236,10 +290,15 @@ io.on('connection', (socket) => {
   });
 
   // 3. Send text chat message
-  socket.on('chat:message', ({ text, tempId }) => {
+  socket.on('chat:message', (payload = {}) => {
+    const { text, tempId } = payload;
     const match = matchmaking.getMatchBySocket(socket.id);
     if (!match) {
       return socket.emit('chat:error', { message: 'You are not in an active chat session.' });
+    }
+
+    if (typeof text !== 'string' || !text.trim() || text.length > 1000) {
+      return socket.emit('chat:error', { message: 'Invalid message payload or message too long (max 1000 characters).' });
     }
 
     // Rate limit check
@@ -259,10 +318,9 @@ io.on('connection', (socket) => {
 
     const isUser1 = match.user1.socketId === socket.id;
     const senderId = isUser1 ? match.user1.userId : match.user2.userId;
-    const recipientSocketId = isUser1 ? match.user2.socketId : match.user1.socketId;
 
     const messagePayload = {
-      id: tempId || `msg_${Date.now()}`,
+      id: typeof tempId === 'string' && tempId.length <= 64 ? tempId : `msg_${Date.now()}`,
       senderId,
       senderRole: isUser1 ? 'user1' : 'user2',
       text: filterResult.cleanedText,
@@ -281,15 +339,16 @@ io.on('connection', (socket) => {
   });
 
   // 4. Typing indicator
-  socket.on('chat:typing', ({ isTyping }) => {
+  socket.on('chat:typing', (payload = {}) => {
     const match = matchmaking.getMatchBySocket(socket.id);
     if (!match) return;
 
-    socket.to(match.room).emit('chat:typing', { isTyping: Boolean(isTyping) });
+    socket.to(match.room).emit('chat:typing', { isTyping: Boolean(payload.isTyping) });
   });
 
   // 5. Skip / Next Stranger
-  socket.on('chat:skip', ({ tags, profile } = {}) => {
+  socket.on('chat:skip', (payload = {}) => {
+    const { tags, profile } = payload;
     const rateCheck = rateLimiter.canSkip(socket.id);
     if (!rateCheck.allowed) {
       return socket.emit('chat:warning', { message: rateCheck.reason });
@@ -302,8 +361,10 @@ io.on('connection', (socket) => {
       io.to(partner.socketId).emit('partner:left', { reason: 'Stranger has disconnected or skipped.' });
     }
 
+    const safeTags = Array.isArray(tags) ? tags.slice(0, 15) : [];
+
     // Re-enqueue requesting user automatically
-    matchmaking.enqueueUser(socket.id, userSessionId, tags || [], profile || {});
+    matchmaking.enqueueUser(socket.id, userSessionId, safeTags, profile || {});
     if (matchmaking.isUserWaiting(socket.id)) {
       socket.emit('queue:status', { status: 'searching' });
     }
@@ -323,7 +384,8 @@ io.on('connection', (socket) => {
   });
 
   // 7. Safety: Report incident
-  socket.on('safety:report', ({ category, details }) => {
+  socket.on('safety:report', (payload = {}) => {
+    const { category, details } = payload;
     const match = matchmaking.getMatchBySocket(socket.id);
     if (!match) {
       return socket.emit('safety:report_ack', { success: false, error: 'No active session found.' });
@@ -333,12 +395,15 @@ io.on('connection', (socket) => {
     const reporterId = isUser1 ? match.user1.userId : match.user2.userId;
     const reportedId = isUser1 ? match.user2.userId : match.user1.userId;
 
+    const safeCategory = typeof category === 'string' ? category.slice(0, 40) : 'general';
+    const safeDetails = typeof details === 'string' ? details.slice(0, 500) : '';
+
     const report = reportManager.submitReport({
       reporterId,
       reportedId,
       matchId: match.id,
-      category,
-      details
+      category: safeCategory,
+      details: safeDetails
     });
 
     socket.emit('safety:report_ack', {
