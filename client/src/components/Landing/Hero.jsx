@@ -1,13 +1,41 @@
 import React, { useState } from 'react';
-import { MessageSquare, Video, Lock, Shield, Zap, Play } from 'lucide-react';
+import { MessageSquare, Video, Lock, Shield, Zap, Play, HelpCircle, ChevronDown, ChevronUp, Sparkles, Heart } from 'lucide-react';
 import { InterestPicker } from './InterestPicker';
 import { ProfileSetup } from './ProfileSetup';
 import { useSocket } from '../../contexts/SocketContext';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 
-export const Hero = ({ onStartChat, onOpenAdmin }) => {
+const LANDING_FAQS = [
+  {
+    q: 'Is Stranger Chat an alternative to Omegle?',
+    a: 'Yes! Stranger Chat is built as a fast, modern, and safe Omegle alternative for anonymous 1-on-1 random text and video chat with shared topic matching and zero registration.'
+  },
+  {
+    q: 'Is Stranger Chat completely free to use?',
+    a: 'Yes, Stranger Chat is 100% free with no registration, subscription fees, or hidden paywalls. You can connect via text or video anytime.'
+  },
+  {
+    q: 'Is my chat private and anonymous?',
+    a: 'Yes. Video and audio streams are directly transmitted peer-to-peer using WebRTC encryption. Text messages are ephemeral and never permanently stored on our servers unless a safety incident is reported.'
+  },
+  {
+    q: 'What age do I need to be to use Stranger Chat?',
+    a: 'Stranger Chat is strictly for adult users aged 18 years and older. Minors are strictly prohibited from using the platform.'
+  },
+  {
+    q: 'How does interest-based topic matching work?',
+    a: 'You can optionally type or select topic tags (like #music, #gaming, #movies, or #travel). Our matchmaking system pairs you randomly with available strangers and highlights any shared interests you have in common.'
+  }
+];
+
+export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentModal }) => {
   const { stats, tags, setTags } = useSocket();
   const { videoMode, setVideoMode } = useWebRTC();
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+
+  const toggleFaq = (idx) => {
+    setOpenFaqIndex(openFaqIndex === idx ? null : idx);
+  };
 
   return (
     <div
@@ -80,7 +108,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
           padding: '0 8px'
         }}
       >
-        Chat with random people around the world. No login needed. Private and anonymous.
+        Chat with random people around the world. No login needed. Private, free, and moderated.
       </p>
 
       {/* Main Setup Card */}
@@ -208,7 +236,7 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
         </button>
       </div>
 
-      {/* Safety & Features Grid - Trust Badges */}
+      {/* Trust & Safety Badges */}
       <div
         style={{
           display: 'grid',
@@ -248,9 +276,9 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             <Lock size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Private by Design</h4>
+            <h2 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)', textTransform: 'none' }}>Private by Design</h2>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Messages aren't stored after you leave.
+              Messages aren't stored after you leave. Encrypted P2P video.
             </p>
           </div>
         </div>
@@ -284,9 +312,9 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             <Shield size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Safe & Moderated</h4>
+            <h2 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)', textTransform: 'none' }}>Safe & Moderated</h2>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              1-click report and block. Active filters prevent abuse.
+              1-click report and block. Active automated filters prevent abuse.
             </p>
           </div>
         </div>
@@ -320,13 +348,159 @@ export const Hero = ({ onStartChat, onOpenAdmin }) => {
             <Zap size={18} />
           </div>
           <div>
-            <h4 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)' }}>Interest Matching</h4>
+            <h2 style={{ fontSize: '0.92rem', marginBottom: '3px', fontFamily: 'var(--font-heading)', textTransform: 'none' }}>Interest Matching</h2>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Chat with people who share your hobbies.
+              Chat with people who share your favorite hobbies.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Search Engine & User FAQ Section */}
+      <section
+        style={{
+          width: '100%',
+          maxWidth: '850px',
+          marginTop: '36px',
+          textAlign: 'left'
+        }}
+        aria-labelledby="faq-heading"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div>
+            <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '2px' }}>DISCOVER STRANGER CHAT</span>
+            <h2 id="faq-heading" style={{ fontSize: '1.25rem', margin: 0, fontFamily: 'var(--font-heading)' }}>
+              Frequently Asked Questions
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenContentModal?.('faq')}
+            className="btn btn-subtle"
+            style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+          >
+            View All FAQs
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {LANDING_FAQS.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: 'var(--bg-surface)',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-sm)',
+                  overflow: 'hidden'
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleFaq(idx)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    color: 'var(--text-primary)',
+                    textAlign: 'left'
+                  }}
+                  aria-expanded={isOpen}
+                >
+                  <span>{faq.q}</span>
+                  {isOpen ? <ChevronUp size={16} color="var(--text-secondary)" /> : <ChevronDown size={16} color="var(--text-secondary)" />}
+                </button>
+                {isOpen && (
+                  <div style={{ padding: '0 16px 14px 16px', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5, borderTop: '1px solid var(--border-soft)', paddingTop: '10px' }}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Semantic Footer with Crawlable Links */}
+      <footer
+        style={{
+          width: '100%',
+          maxWidth: '850px',
+          marginTop: '40px',
+          paddingTop: '20px',
+          borderTop: '1.5px solid var(--border-soft)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+          alignItems: 'center',
+          fontSize: '0.8rem',
+          color: 'var(--text-secondary)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center' }}>
+          <a
+            href="#how-it-works"
+            onClick={(e) => { e.preventDefault(); onOpenContentModal?.('how-it-works'); }}
+            style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
+          >
+            How It Works
+          </a>
+          <span style={{ color: 'var(--border-soft)' }}>•</span>
+          <a
+            href="#safety"
+            onClick={(e) => { e.preventDefault(); onOpenContentModal?.('safety'); }}
+            style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
+          >
+            Safety Guidelines (18+)
+          </a>
+          <span style={{ color: 'var(--border-soft)' }}>•</span>
+          <a
+            href="#faq"
+            onClick={(e) => { e.preventDefault(); onOpenContentModal?.('faq'); }}
+            style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
+          >
+            FAQ
+          </a>
+          <span style={{ color: 'var(--border-soft)' }}>•</span>
+          <a
+            href="#about"
+            onClick={(e) => { e.preventDefault(); onOpenContentModal?.('about'); }}
+            style={{ color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}
+          >
+            About
+          </a>
+          <span style={{ color: 'var(--border-soft)' }}>•</span>
+          <button
+            type="button"
+            onClick={onOpenFeedback}
+            style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}
+          >
+            Feedback
+          </button>
+          <span style={{ color: 'var(--border-soft)' }}>•</span>
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.8rem' }}
+          >
+            Admin Panel
+          </button>
+        </div>
+
+        <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+          © {new Date().getFullYear()} Stranger Chat. Strictly 18+ adult communication platform. Instant anonymous 1-on-1 text & video matching.
+        </p>
+      </footer>
     </div>
   );
 };

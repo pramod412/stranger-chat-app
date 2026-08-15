@@ -3,14 +3,174 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>NexusStrangers — Next-Gen Anonymous Live Chat & Video</title>
-    <meta name="description" content="Instantly connect and talk with random strangers worldwide. Safe, anonymous, real-time text & video pairing with shared interest matching." />
-    <!-- Google Fonts: Archivo Black, JetBrains Mono, Inter, Caveat -->
+    <title>Stranger Chat — Talk to Strangers Online (Omegle Alternative)</title>
+    <meta name="description" content="Free, anonymous Omegle alternative for 1-on-1 random video and text chat with strangers. Features interest topic matching, dark mode, and zero registration." />
+    <meta name="keywords" content="stranger chat, omegle alternative, talk to strangers, random chat, anonymous chat, random video chat, sites like omegle, meet new people, 1 on 1 chat" />
+    <meta name="author" content="Stranger Chat" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://stranger-chat-app-omega.vercel.app/" />
+    <meta name="theme-color" content="#E85D3E" />
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Stranger Chat" />
+    <meta property="og:url" content="https://stranger-chat-app-omega.vercel.app/" />
+    <meta property="og:title" content="Stranger Chat — Talk to Strangers Online (Omegle Alternative)" />
+    <meta property="og:description" content="Free, anonymous Omegle alternative for 1-on-1 random video and text chat with strangers. Features interest topic matching, dark mode, and zero registration." />
+    <meta property="og:image" content="https://stranger-chat-app-omega.vercel.app/og-image.png" />
+    <meta property="og:image:alt" content="Stranger Chat - Modern Omegle Alternative" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Stranger Chat — Talk to Strangers Online (Omegle Alternative)" />
+    <meta name="twitter:description" content="Free, anonymous Omegle alternative for 1-on-1 random video and text chat with strangers. Features interest topic matching, dark mode, and zero registration." />
+    <meta name="twitter:image" content="https://stranger-chat-app-omega.vercel.app/og-image.png" />
+
+    <!-- Google Fonts: Archivo Black, Inter, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Structured Data (JSON-LD): WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Stranger Chat",
+      "alternateName": "StrangerChat - Omegle Alternative",
+      "url": "https://stranger-chat-app-omega.vercel.app/",
+      "description": "A modern, free Omegle alternative for anonymous 1-on-1 live text and video chat matching with topic-based discovery and automated moderation.",
+      "applicationCategory": "SocialNetworkingApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires JavaScript and modern WebRTC-compatible browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Free Omegle alternative with instant 1-on-1 random matchmaking",
+        "Encrypted WebRTC peer-to-peer video & audio chat",
+        "Interest-based topic matching tags",
+        "Automated content filtering & active moderation",
+        "Dark mode & mobile-first responsive design",
+        "Zero registration or signup required"
+      ]
+    }
+    </script>
+
+    <!-- Structured Data (JSON-LD): Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Stranger Chat",
+      "alternateName": "StrangerChat",
+      "url": "https://stranger-chat-app-omega.vercel.app/",
+      "logo": "https://stranger-chat-app-omega.vercel.app/logo.png"
+    }
+    </script>
+
+    <!-- Structured Data (JSON-LD): FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Stranger Chat an alternative to Omegle?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Stranger Chat is a modern, free, and safe alternative to Omegle. It offers instant 1-on-1 text and video chat with random strangers, interest topic tags, zero registration, and enhanced moderation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Stranger Chat free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Stranger Chat is 100% free to use. There are no subscriptions, paywalls, or hidden charges for matching, text chat, or video conversations."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to create an account or provide my email to chat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No account, email, or registration is required. You are assigned an ephemeral anonymous ID upon visiting the site and can start chatting immediately."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does interest topic matching work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can optionally select or type topic tags (such as gaming, music, coding, anime, or travel). When matching, our matchmaking engine pairs you randomly with strangers and displays any shared interests you have in common."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I choose text chat or video chat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You can switch between Text Chat mode and Video Chat mode directly from the setup card on the home screen, or toggle modes seamlessly during an active conversation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What age do I need to be to use Stranger Chat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stranger Chat is an adult communication platform strictly intended for users who are 18 years of age or older. Minors are not permitted on the platform."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is Stranger Chat moderated for safety?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stranger Chat utilizes automated real-time text safety filters to block slurs and severe harassment, sliding-window rate limiters to prevent spam, and instant one-click Report and Block buttons for active peer moderation."
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
+    <!-- Pre-rendered Static Content for Non-JS Crawlers & Search Engines -->
+    <noscript>
+      <header>
+        <h1>Stranger Chat — Talk to Strangers Online (Omegle Alternative)</h1>
+        <p>Instant anonymous 1-on-1 text and video chat pairing with shared interests. The modern, free Omegle alternative.</p>
+      </header>
+      <main>
+        <section>
+          <h2>The Modern Omegle Alternative</h2>
+          <p>Looking for a safe, modern alternative to Omegle? Stranger Chat connects you instantly with random people worldwide for 1-on-1 text and video conversations without any sign-up or registration.</p>
+        </section>
+        <section>
+          <h2>How It Works</h2>
+          <p>Stranger Chat connects you with random strangers across the globe. Select Text or Video mode, add optional interests (e.g. music, gaming, deep talks), and connect in seconds.</p>
+        </section>
+        <section>
+          <h2>Safety & Community Guidelines</h2>
+          <p>Stranger Chat is strictly for adults (18+). We maintain zero tolerance for hate speech, harassment, bullying, and illicit content. Use our built-in Report and Block tools to moderate your chat experience.</p>
+        </section>
+        <section>
+          <h2>Frequently Asked Questions</h2>
+          <article>
+            <h3>Is Stranger Chat an Omegle alternative?</h3>
+            <p>Yes, Stranger Chat is designed as a modern, clean, and safe alternative to Omegle for instant random 1-on-1 text and video chat.</p>
+          </article>
+          <article>
+            <h3>Is Stranger Chat free?</h3>
+            <p>Yes, Stranger Chat is 100% free with no sign-up or payments required.</p>
+          </article>
+        </section>
+      </main>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
