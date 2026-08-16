@@ -1,0 +1,52 @@
+# Robots.txt for Stranger Chat (https://stranger-chat-app-omega.vercel.app)
+# Designed for high discoverability across traditional search engines and AI search bots
+
+# 1. Global Crawler Rules
+User-agent: *
+Allow: /
+Disallow: /api/admin/
+Disallow: /socket.io/
+
+# 2. Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# 3. AI Search & Citation Bots (Explicitly Permitted for Discoverability)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# 4. Sitemap Location
+Sitemap: https://stranger-chat-app-omega.vercel.app/sitemap.xml

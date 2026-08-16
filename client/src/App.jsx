@@ -7,6 +7,7 @@ import { ReportModal } from './components/Modals/ReportModal';
 import { BlockModal } from './components/Modals/BlockModal';
 import { AdminDashboard } from './components/Modals/AdminDashboard';
 import { FeedbackModal } from './components/Modals/FeedbackModal';
+import { ContentModal } from './components/Modals/ContentModal';
 import { Toast } from './components/Common/Toast';
 import { useSocket } from './contexts/SocketContext';
 import { MessageSquare, Shield, MessageSquareHeart, RefreshCw, Sun, Moon } from 'lucide-react';
@@ -84,6 +85,21 @@ export function App() {
   const [showBlock, setShowBlock] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [contentModalType, setContentModalType] = useState(null); // 'how-it-works' | 'safety' | 'faq' | 'about' | null
+
+  // Hash-based deep link handler for SEO & direct shares (#how-it-works, #safety, #faq, #about)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (['how-it-works', 'safety', 'faq', 'about'].includes(hash)) {
+        setContentModalType(hash);
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   const handleStartChatClick = () => {
     if (!hasAgreedTerms) {
@@ -159,7 +175,7 @@ export function App() {
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        <nav aria-label="Quick Actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           {/* Dark Mode Toggle */}
           <button
             type="button"
@@ -194,7 +210,7 @@ export function App() {
             <Shield size={14} color="var(--teal)" />
             <span className="header-action-label">Admin</span>
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Main Body */}
@@ -215,7 +231,7 @@ export function App() {
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
               <div className="glass-panel" style={{ maxWidth: '460px', padding: '32px', textAlign: 'center' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🚫</div>
-                <h2 style={{ fontSize: '1.5rem', color: '#ff4e50', marginBottom: '8px' }}>Access Suspended</h2>
+                <h2 style={{ fontSize: '1.5rem', color: 'var(--pink)', marginBottom: '8px' }}>Access Suspended</h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.5 }}>
                   Your session has been banned by moderators for violating our community safety guidelines.
                 </p>
@@ -231,10 +247,23 @@ export function App() {
               onStartChat={handleStartChatClick}
               onOpenAdmin={() => setShowAdmin(true)}
               onOpenFeedback={() => setShowFeedback(true)}
+              onOpenContentModal={(type) => setContentModalType(type)}
             />
           )}
         </ErrorBoundary>
       </main>
+
+      {/* Content & Policy Modals */}
+      <ContentModal
+        type={contentModalType}
+        isOpen={Boolean(contentModalType)}
+        onClose={() => {
+          setContentModalType(null);
+          if (window.location.hash) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+          }
+        }}
+      />
 
       {/* Modals */}
       <AgeGateModal
