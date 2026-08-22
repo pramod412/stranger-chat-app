@@ -3,11 +3,22 @@ import { useSocket } from './SocketContext';
 
 const WebRTCContext = createContext(null);
 
+// International Standard STUN server pool with multiple global providers
 const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ]
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    { urls: 'stun:stun.services.mozilla.com' },
+    { urls: 'stun:stun.nextcloud.com:443' }
+  ],
+  iceCandidatePoolSize: 10,
+  bundlePolicy: 'max-bundle',
+  rtcpMuxPolicy: 'require'
 };
 
 export const WebRTCProvider = ({ children }) => {
@@ -48,7 +59,7 @@ export const WebRTCProvider = ({ children }) => {
       ctx.fillStyle = '#00f2fe';
       ctx.font = '24px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('⚡ Stranger Chat Video Stream', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText('⚡ Just Random Chat Video', canvas.width / 2, canvas.height / 2 - 20);
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '16px Inter, sans-serif';
@@ -92,8 +103,17 @@ export const WebRTCProvider = ({ children }) => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-            audio: true
+            video: {
+              width: { ideal: 640, max: 1280 },
+              height: { ideal: 480, max: 720 },
+              facingMode: 'user',
+              frameRate: { ideal: 30, max: 30 }
+            },
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            }
           });
         } catch (err) {
           console.warn('Physical camera unavailable or permission denied, creating virtual fallback feed', err);
@@ -119,7 +139,6 @@ export const WebRTCProvider = ({ children }) => {
 
   // Teardown WebRTC peer connection and strictly terminate remote stream
   const closePeerConnection = useCallback(() => {
-    // 1. Explicitly stop and discard all tracks in remoteStream
     if (remoteStreamRef.current) {
       try {
         remoteStreamRef.current.getTracks().forEach((track) => {
@@ -132,7 +151,6 @@ export const WebRTCProvider = ({ children }) => {
     }
     setRemoteStream(null);
 
-    // 2. Teardown Peer Connection and remove sender/receiver tracks
     if (pcRef.current) {
       try {
         pcRef.current.getSenders().forEach((s) => {
@@ -150,6 +168,7 @@ export const WebRTCProvider = ({ children }) => {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
       pcRef.current.oniceconnectionstatechange = null;
+      pcRef.current.onconnectionstatechange = null;
       pcRef.current.close();
       pcRef.current = null;
     }
@@ -169,7 +188,83 @@ export const WebRTCProvider = ({ children }) => {
     closePeerConnection();
   }, [closePeerConnection]);
 
-  // Initialize WebRTC session for a newly matched stranger
+  // Setup PeerConnection with tracks, transceivers, and handlers
+  const createConfiguredPeerConnection = useCallback((sessionMatchId, stream) => {
+    const pc = new RTCPeerConnection(RTC_CONFIG);
+
+    // Add local tracks if available
+    if (stream) {
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
+    }
+
+    // Ensure transceivers exist with sendrecv direction for bidirectional media
+    const videoSender = pc.getSenders().find((s) => s.track && s.track.kind === 'video');
+    if (!videoSender) {
+      try {
+        pc.addTransceiver('video', { direction: 'sendrecv' });
+      } catch (e) {}
+    }
+
+    const audioSender = pc.getSenders().find((s) => s.track && s.track.kind === 'audio');
+    if (!audioSender) {
+      try {
+        pc.addTransceiver('audio', { direction: 'sendrecv' });
+      } catch (e) {}
+    }
+
+    // ICE Candidate handler
+    pc.onicecandidate = (event) => {
+      if (event.candidate && activeMatchIdRef.current === sessionMatchId) {
+        socket?.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: sessionMatchId });
+      }
+    };
+
+    // Track handler with live reactive stream reproduction for React state
+    pc.ontrack = (event) => {
+      if (activeMatchIdRef.current !== sessionMatchId) return;
+
+      let currentRemote = remoteStreamRef.current;
+      if (!currentRemote) {
+        currentRemote = event.streams?.[0] || new MediaStream();
+      }
+
+      if (event.track && !currentRemote.getTracks().some((t) => t.id === event.track.id)) {
+        currentRemote.addTrack(event.track);
+      }
+
+      const syncRemoteState = () => {
+        if (activeMatchIdRef.current !== sessionMatchId) return;
+        const freshStream = new MediaStream(currentRemote.getTracks());
+        remoteStreamRef.current = freshStream;
+        setRemoteStream(freshStream);
+      };
+
+      if (event.track) {
+        event.track.onunmute = syncRemoteState;
+        event.track.onmute = syncRemoteState;
+        event.track.onended = syncRemoteState;
+      }
+
+      syncRemoteState();
+    };
+
+    // ICE connection state monitor
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+        if (pc.iceConnectionState === 'failed') {
+          try {
+            pc.restartIce();
+          } catch (e) {}
+        }
+      }
+    };
+
+    return pc;
+  }, [socket]);
+
+  // Initialize WebRTC session for newly matched stranger
   const initWebRTCSession = useCallback(async () => {
     if (!socket || !videoMode || matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
@@ -181,68 +276,31 @@ export const WebRTCProvider = ({ children }) => {
     isSettingUpRef.current = true;
 
     try {
-      // 1. Cleanly terminate any prior connection
       closePeerConnection();
 
-      // 2. Ensure local stream is ready
       const stream = await ensureLocalStream();
       if (!stream || matchState !== 'connected' || activeMatchIdRef.current !== sessionMatchId) {
         isSettingUpRef.current = false;
         return;
       }
 
-      // 3. Instantiate fresh RTCPeerConnection
-      const pc = new RTCPeerConnection(RTC_CONFIG);
+      const pc = createConfiguredPeerConnection(sessionMatchId, stream);
       pcRef.current = pc;
 
-      // 4. Add local tracks
-      stream.getTracks().forEach((track) => {
-        pc.addTrack(track, stream);
+      // Broadcast local initial media state to peer
+      socket.emit('webrtc:media-state', {
+        videoEnabled: isVideoEnabled,
+        audioEnabled: isAudioEnabled,
+        matchId: sessionMatchId
       });
 
-      // 5. Handle ICE Candidates with matchId validation
-      pc.onicecandidate = (event) => {
-        if (event.candidate && activeMatchIdRef.current === sessionMatchId) {
-          socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: sessionMatchId });
-        }
-      };
-
-      // 6. Handle Incoming Remote Stream
-      pc.ontrack = (event) => {
-        if (activeMatchIdRef.current !== sessionMatchId) return; // Discard stale tracks
-
-        let inboundStream;
-        if (event.streams && event.streams[0]) {
-          inboundStream = event.streams[0];
-        } else if (event.track) {
-          inboundStream = new MediaStream([event.track]);
-        }
-
-        if (inboundStream) {
-          remoteStreamRef.current = inboundStream;
-          setRemoteStream(inboundStream);
-        }
-      };
-
-      // 7. Handle Connection State / Disconnection
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-          // Immediately terminate remote stream on disconnect/failure
-          if (remoteStreamRef.current) {
-            remoteStreamRef.current.getTracks().forEach((t) => t.stop());
-            remoteStreamRef.current = null;
-          }
-          setRemoteStream(null);
-        }
-      };
-
-      // 8. If initiator, create and dispatch SDP offer
+      // If initiator, dispatch SDP offer
       if (currentMatch.isInitiator) {
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
           offerToReceiveVideo: true
         });
-        if (activeMatchIdRef.current !== sessionMatchId) return; // Abort if match changed
+        if (activeMatchIdRef.current !== sessionMatchId) return;
         await pc.setLocalDescription(offer);
         socket.emit('webrtc:offer', { offer, matchId: sessionMatchId });
       }
@@ -251,9 +309,9 @@ export const WebRTCProvider = ({ children }) => {
     } finally {
       isSettingUpRef.current = false;
     }
-  }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection]);
+  }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection, createConfiguredPeerConnection, isVideoEnabled, isAudioEnabled]);
 
-  // Clean termination whenever matchState changes or when currentMatch resets
+  // Clean termination or initialization on matchState/match change
   useEffect(() => {
     if (matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
@@ -267,37 +325,14 @@ export const WebRTCProvider = ({ children }) => {
     if (!socket) return;
 
     const handleOffer = async ({ offer, matchId }) => {
-      // Validate that offer belongs to current active session
       if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) {
-        return; // Reject stale signaling from previous stranger
+        return;
       }
 
       try {
         const stream = await ensureLocalStream();
-        if (!pcRef.current) {
-          const pc = new RTCPeerConnection(RTC_CONFIG);
-          pcRef.current = pc;
-
-          if (stream) {
-            stream.getTracks().forEach((track) => {
-              pc.addTrack(track, stream);
-            });
-          }
-
-          pc.onicecandidate = (event) => {
-            if (event.candidate) {
-              socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: activeMatchIdRef.current });
-            }
-          };
-
-          pc.ontrack = (event) => {
-            if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
-            let inboundStream = event.streams?.[0] || (event.track ? new MediaStream([event.track]) : null);
-            if (inboundStream) {
-              remoteStreamRef.current = inboundStream;
-              setRemoteStream(inboundStream);
-            }
-          };
+        if (!pcRef.current || pcRef.current.signalingState === 'closed') {
+          pcRef.current = createConfiguredPeerConnection(activeMatchIdRef.current, stream);
         }
 
         const pc = pcRef.current;
@@ -316,6 +351,13 @@ export const WebRTCProvider = ({ children }) => {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('webrtc:answer', { answer, matchId: activeMatchIdRef.current });
+
+        // Inform peer of our media states
+        socket.emit('webrtc:media-state', {
+          videoEnabled: isVideoEnabled,
+          audioEnabled: isAudioEnabled,
+          matchId: activeMatchIdRef.current
+        });
       } catch (err) {
         console.error('Error handling WebRTC offer:', err);
       }
@@ -323,17 +365,20 @@ export const WebRTCProvider = ({ children }) => {
 
     const handleAnswer = async ({ answer, matchId }) => {
       if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
-      if (!pcRef.current) return;
+      if (!pcRef.current || pcRef.current.signalingState === 'closed') return;
       try {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+        const pc = pcRef.current;
+        if (pc.signalingState === 'have-local-offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
 
-        // Flush queued ICE candidates
-        while (iceCandidatesQueue.current.length > 0) {
-          const cand = iceCandidatesQueue.current.shift();
-          try {
-            await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
-          } catch (e) {
-            console.warn('Queued ICE candidate note:', e);
+          // Flush queued ICE candidates
+          while (iceCandidatesQueue.current.length > 0) {
+            const cand = iceCandidatesQueue.current.shift();
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (e) {
+              console.warn('Queued ICE candidate note:', e);
+            }
           }
         }
       } catch (err) {
@@ -343,9 +388,9 @@ export const WebRTCProvider = ({ children }) => {
 
     const handleCandidate = async ({ candidate, matchId }) => {
       if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
-      if (!candidate) return;
+      if (!candidate || !candidate.candidate) return;
       const pc = pcRef.current;
-      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+      if (pc && pc.remoteDescription && pc.remoteDescription.type && pc.signalingState !== 'closed') {
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (err) {
@@ -384,7 +429,7 @@ export const WebRTCProvider = ({ children }) => {
       socket.off('webrtc:peer-media-state', handlePeerMediaState);
       socket.off('video:peer-toggle', handlePeerVideoToggle);
     };
-  }, [socket, videoMode, ensureLocalStream]);
+  }, [socket, videoMode, ensureLocalStream, createConfiguredPeerConnection, isVideoEnabled, isAudioEnabled]);
 
   // Toggle Video / Camera ON/OFF
   const toggleVideo = useCallback(() => {
@@ -440,7 +485,8 @@ export const WebRTCProvider = ({ children }) => {
         toggleVideo,
         toggleAudio,
         ensureLocalStream,
-        closePeerConnection
+        closePeerConnection,
+        cleanupMedia
       }}
     >
       {children}
@@ -449,3 +495,5 @@ export const WebRTCProvider = ({ children }) => {
 };
 
 export const useWebRTC = () => useContext(WebRTCContext);
+export default WebRTCContext;
+
