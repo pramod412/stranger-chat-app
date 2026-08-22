@@ -48,13 +48,13 @@ export const ContentModal = ({ type, isOpen, onClose }) => {
 
             <div>
               <span className="eyebrow" style={{ color: 'var(--accent)', fontSize: '0.68rem', marginBottom: '2px' }}>
-                STRANGER CHAT GUIDE
+                JUST RANDOM CHAT GUIDE
               </span>
               <h2 style={{ fontSize: '1.3rem', margin: 0, fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
-                {type === 'how-it-works' && 'How Stranger Chat Works'}
+                {type === 'how-it-works' && 'How Just Random Chat Works'}
                 {type === 'safety' && 'Safety & Community Guidelines'}
                 {type === 'faq' && 'Frequently Asked Questions'}
-                {type === 'about' && 'About Stranger Chat'}
+                {type === 'about' && 'About Just Random Chat'}
               </h2>
             </div>
           </div>
@@ -75,7 +75,7 @@ export const ContentModal = ({ type, isOpen, onClose }) => {
           {type === 'how-it-works' && (
             <>
               <p>
-                <strong>Stranger Chat</strong> is a free, instant 1-on-1 discovery app that connects you to random strangers worldwide without requiring logins, accounts, or email verification.
+                <strong>Just Random Chat</strong> (justrandomchat.com) is a free, instant 1-on-1 discovery app that connects you to random strangers worldwide without requiring logins, accounts, or email verification.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '8px 0' }}>
@@ -113,7 +113,7 @@ export const ContentModal = ({ type, isOpen, onClose }) => {
           {type === 'safety' && (
             <>
               <div style={{ padding: '12px 14px', background: 'var(--coral-bg)', border: '1.5px solid var(--coral)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)' }}>
-                <strong>⚠️ Strictly 18+ Platform:</strong> Stranger Chat is an adult communication platform for individuals aged 18 and older. Minors are strictly prohibited.
+                <strong>⚠️ Strictly 18+ Platform:</strong> Just Random Chat is an adult communication platform for individuals aged 18 and older. Minors are strictly prohibited.
               </div>
 
               <h3 style={{ fontSize: '1rem', marginTop: '8px', color: 'var(--text-primary)' }}>Our Core Safety Standards</h3>
@@ -131,13 +131,13 @@ export const ContentModal = ({ type, isOpen, onClose }) => {
           {type === 'faq' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ padding: '12px', background: 'var(--bg-surface-muted)', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-md)' }}>
-                <h3 style={{ fontSize: '0.92rem', marginBottom: '4px', color: 'var(--text-primary)' }}>Is Stranger Chat an alternative to Omegle?</h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>Yes! Stranger Chat is a modern, fast, and safe alternative to Omegle for 1-on-1 random video and text chat. It features interest topic tags, zero registration, and active automated moderation.</p>
+                <h3 style={{ fontSize: '0.92rem', marginBottom: '4px', color: 'var(--text-primary)' }}>Is Just Random Chat an alternative to Omegle?</h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>Yes! Just Random Chat is a modern, fast, and safe alternative to Omegle for 1-on-1 random video and text chat. It features interest topic tags, zero registration, and active automated moderation.</p>
               </div>
 
               <div style={{ padding: '12px', background: 'var(--bg-surface-muted)', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-md)' }}>
-                <h3 style={{ fontSize: '0.92rem', marginBottom: '4px', color: 'var(--text-primary)' }}>Is Stranger Chat really free?</h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>Yes. Stranger Chat is 100% free with no subscriptions, premium tiers, or registration fees.</p>
+                <h3 style={{ fontSize: '0.92rem', marginBottom: '4px', color: 'var(--text-primary)' }}>Is Just Random Chat really free?</h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>Yes. Just Random Chat is 100% free with no subscriptions, premium tiers, or registration fees.</p>
               </div>
 
               <div style={{ padding: '12px', background: 'var(--bg-surface-muted)', border: '1.5px solid var(--border-soft)', borderRadius: 'var(--radius-md)' }}>
@@ -161,7 +161,7 @@ export const ContentModal = ({ type, isOpen, onClose }) => {
           {type === 'about' && (
             <>
               <p>
-                <strong>Stranger Chat</strong> is a free Omegle alternative designed to bring back the excitement of spontaneous, authentic online conversation. In an era dominated by algorithmic social feeds and curated profiles, Stranger Chat provides a clean, modern space to meet real human beings worldwide.
+                <strong>Just Random Chat</strong> (justrandomchat.com) is a free Omegle alternative designed to bring back the excitement of spontaneous, authentic online conversation. In an era dominated by algorithmic social feeds and curated profiles, Just Random Chat provides a clean, modern space to meet real human beings worldwide.
               </p>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                 Built with modern WebRTC peer-to-peer technology, real-time WebSocket matchmaking, responsive design for desktop and mobile, and a privacy-first approach.

@@ -10,7 +10,7 @@ import { FeedbackModal } from './components/Modals/FeedbackModal';
 import { ContentModal } from './components/Modals/ContentModal';
 import { Toast } from './components/Common/Toast';
 import { useSocket } from './contexts/SocketContext';
-import { MessageSquare, Shield, MessageSquareHeart, RefreshCw, Sun, Moon } from 'lucide-react';
+import { MessageSquare, Shield, MessageSquareHeart, RefreshCw, Sun, Moon, Share2 } from 'lucide-react';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -61,7 +61,7 @@ class ErrorBoundary extends Component {
 }
 
 export function App() {
-  const { matchState, startSearch, tags } = useSocket();
+  const { matchState, startSearch, tags, showNotification } = useSocket();
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('stranger_theme') || 'light';
@@ -74,6 +74,30 @@ export function App() {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Just Random Chat',
+      text: 'Talk to random strangers 1-on-1 with zero signup on Just Random Chat!',
+      url: 'https://justrandomchat.com/'
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText('https://justrandomchat.com/');
+      showNotification?.('Link copied! Share JustRandomChat.com with friends.', 'success');
+    } catch {
+      showNotification?.('Share https://justrandomchat.com/ with your friends!', 'info');
+    }
   };
 
   const [hasAgreedTerms, setHasAgreedTerms] = useState(() => {
@@ -163,7 +187,7 @@ export function App() {
           </div>
           <div style={{ minWidth: 0 }}>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(0.95rem, 3.5vw, 1.25rem)', color: 'var(--text-primary)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-              STRANGER CHAT
+              JUST RANDOM CHAT
             </span>
           </div>
         </div>
@@ -176,6 +200,19 @@ export function App() {
         </div>
 
         <nav aria-label="Quick Actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {/* Share Button */}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="btn btn-subtle header-action-btn"
+            style={{ fontSize: '0.78rem', padding: '6px 10px', whiteSpace: 'nowrap', gap: '5px', minHeight: '34px' }}
+            title="Share Just Random Chat"
+            aria-label="Share website"
+          >
+            <Share2 size={14} color="var(--purple)" />
+            <span className="header-action-label">Share</span>
+          </button>
+
           {/* Dark Mode Toggle */}
           <button
             type="button"

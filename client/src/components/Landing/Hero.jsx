@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Video, Lock, Shield, Zap, Play, HelpCircle, ChevronDown, ChevronUp, Sparkles, Heart } from 'lucide-react';
+import { MessageSquare, Video, Lock, Shield, Zap, Play, HelpCircle, ChevronDown, ChevronUp, Sparkles, Heart, Share2, Check } from 'lucide-react';
 import { InterestPicker } from './InterestPicker';
 import { ProfileSetup } from './ProfileSetup';
 import { useSocket } from '../../contexts/SocketContext';
@@ -7,20 +7,20 @@ import { useWebRTC } from '../../contexts/WebRTCContext';
 
 const LANDING_FAQS = [
   {
-    q: 'Is Stranger Chat an alternative to Omegle?',
-    a: 'Yes! Stranger Chat is built as a fast, modern, and safe Omegle alternative for anonymous 1-on-1 random text and video chat with shared topic matching and zero registration.'
+    q: 'Is Just Random Chat an alternative to Omegle?',
+    a: 'Yes! Just Random Chat is built as a fast, modern, and safe Omegle alternative for anonymous 1-on-1 random text and video chat with shared topic matching and zero registration.'
   },
   {
-    q: 'Is Stranger Chat completely free to use?',
-    a: 'Yes, Stranger Chat is 100% free with no registration, subscription fees, or hidden paywalls. You can connect via text or video anytime.'
+    q: 'Is Just Random Chat completely free to use?',
+    a: 'Yes, Just Random Chat is 100% free with no registration, subscription fees, or hidden paywalls. You can connect via text or video anytime on justrandomchat.com.'
   },
   {
     q: 'Is my chat private and anonymous?',
     a: 'Yes. Video and audio streams are directly transmitted peer-to-peer using WebRTC encryption. Text messages are ephemeral and never permanently stored on our servers unless a safety incident is reported.'
   },
   {
-    q: 'What age do I need to be to use Stranger Chat?',
-    a: 'Stranger Chat is strictly for adult users aged 18 years and older. Minors are strictly prohibited from using the platform.'
+    q: 'What age do I need to be to use Just Random Chat?',
+    a: 'Just Random Chat is strictly for adult users aged 18 years and older. Minors are strictly prohibited from using the platform.'
   },
   {
     q: 'How does interest-based topic matching work?',
@@ -29,12 +29,35 @@ const LANDING_FAQS = [
 ];
 
 export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentModal }) => {
-  const { stats, tags, setTags } = useSocket();
+  const { stats, tags, setTags, showNotification } = useSocket();
   const { videoMode, setVideoMode } = useWebRTC();
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [copiedShare, setCopiedShare] = useState(false);
 
   const toggleFaq = (idx) => {
     setOpenFaqIndex(openFaqIndex === idx ? null : idx);
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText('https://justrandomchat.com/');
+      setCopiedShare(true);
+      showNotification?.('Link copied! Share JustRandomChat.com with friends.', 'success');
+      setTimeout(() => setCopiedShare(false), 2500);
+    } catch {
+      showNotification?.('Visit https://justrandomchat.com/ to chat!', 'info');
+    }
+  };
+
+  const shareOnTwitter = () => {
+    const text = encodeURIComponent('Chat 1-on-1 with random strangers worldwide for free with zero signup on Just Random Chat!');
+    const url = encodeURIComponent('https://justrandomchat.com/');
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const shareOnWhatsApp = () => {
+    const text = encodeURIComponent('Chat 1-on-1 with strangers online on Just Random Chat: https://justrandomchat.com/');
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -79,7 +102,7 @@ export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentMo
       {/* Hero Title */}
       <div style={{ marginBottom: '8px', width: '100%' }}>
         <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '6px' }}>
-          ANONYMOUS 1-ON-1 MATCHMAKING
+          JUST RANDOM CHAT · 1-ON-1 ANONYMOUS MATCHMAKING
         </span>
         <h1
           style={{
@@ -101,14 +124,14 @@ export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentMo
         style={{
           fontSize: 'clamp(0.9rem, 2.8vw, 1.1rem)',
           color: 'var(--text-secondary)',
-          maxWidth: '620px',
+          maxWidth: '640px',
           marginBottom: '20px',
           lineHeight: 1.45,
           fontFamily: 'var(--font-sans)',
           padding: '0 8px'
         }}
       >
-        Chat with random people around the world. No login needed. Private, free, and moderated.
+        Chat with random people around the world on JustRandomChat.com. No login needed. 100% free, private, and moderated.
       </p>
 
       {/* Main Setup Card */}
@@ -356,6 +379,69 @@ export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentMo
         </div>
       </div>
 
+      {/* Share & Reachability Card */}
+      <div
+        className="glass-panel"
+        style={{
+          width: '100%',
+          maxWidth: '850px',
+          marginTop: '24px',
+          padding: '16px 20px',
+          background: 'var(--bg-surface)',
+          border: '1.5px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px'
+        }}
+      >
+        <div style={{ textAlign: 'left', minWidth: '220px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+            <Sparkles size={15} color="var(--accent)" />
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+              Share Just Random Chat
+            </span>
+          </div>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
+            Invite friends or your online circle to chat anonymously at <strong>justrandomchat.com</strong>
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={shareOnWhatsApp}
+            className="btn btn-subtle"
+            style={{ fontSize: '0.78rem', padding: '6px 12px', gap: '6px' }}
+            title="Share on WhatsApp"
+          >
+            <span>💬 WhatsApp</span>
+          </button>
+          <button
+            type="button"
+            onClick={shareOnTwitter}
+            className="btn btn-subtle"
+            style={{ fontSize: '0.78rem', padding: '6px 12px', gap: '6px' }}
+            title="Share on X / Twitter"
+          >
+            <span>🐦 X / Twitter</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="btn btn-subtle"
+            style={{ fontSize: '0.78rem', padding: '6px 12px', gap: '6px' }}
+            title="Copy Website Link"
+          >
+            {copiedShare ? <Check size={14} color="var(--teal)" /> : <Share2 size={14} color="var(--accent)" />}
+            <span>{copiedShare ? 'Copied!' : 'Copy Link'}</span>
+          </button>
+        </div>
+      </div>
+
       {/* Search Engine & User FAQ Section */}
       <section
         style={{
@@ -368,7 +454,7 @@ export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentMo
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div>
-            <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '2px' }}>DISCOVER STRANGER CHAT</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: '2px' }}>DISCOVER JUSTRANDOMCHAT</span>
             <h2 id="faq-heading" style={{ fontSize: '1.25rem', margin: 0, fontFamily: 'var(--font-heading)' }}>
               Frequently Asked Questions
             </h2>
@@ -498,7 +584,7 @@ export const Hero = ({ onStartChat, onOpenAdmin, onOpenFeedback, onOpenContentMo
         </div>
 
         <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-          © {new Date().getFullYear()} Stranger Chat. Strictly 18+ adult communication platform. Instant anonymous 1-on-1 text & video matching.
+          © {new Date().getFullYear()} Just Random Chat (justrandomchat.com). Strictly 18+ adult communication platform. Instant anonymous 1-on-1 text & video matching.
         </p>
       </footer>
     </div>

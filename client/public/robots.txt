@@ -1,4 +1,4 @@
-# Robots.txt for Stranger Chat (https://stranger-chat-app-omega.vercel.app)
+# Robots.txt for Just Random Chat (https://justrandomchat.com)
 # Designed for high discoverability across traditional search engines and AI search bots
 
 # 1. Global Crawler Rules
@@ -49,4 +49,5 @@ User-agent: CCBot
 Allow: /
 
 # 4. Sitemap Location
-Sitemap: https://stranger-chat-app-omega.vercel.app/sitemap.xml
+Sitemap: https://justrandomchat.com/sitemap.xml
+

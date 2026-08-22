@@ -1,9 +1,9 @@
-# ⚡ Stranger Chat — Free Anonymous 1-on-1 Chat Platform (Omegle Alternative)
+# ⚡ Just Random Chat — Free Anonymous 1-on-1 Chat Platform (Omegle Alternative)
 
-[![Live Demo](https://img.shields.io/badge/Live_App-Visit_Stranger_Chat-E85D3E?style=for-the-badge&logo=vercel&logoColor=white)](https://stranger-chat-app-omega.vercel.app/)
+[![Live Website](https://img.shields.io/badge/Live_App-justrandomchat.com-E85D3E?style=for-the-badge&logo=google-chrome&logoColor=white)](https://justrandomchat.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> **Live Website**: [https://stranger-chat-app-omega.vercel.app/](https://stranger-chat-app-omega.vercel.app/)  
+> **Live Website**: [https://justrandomchat.com/](https://justrandomchat.com/)  
 > Free, instant, and anonymous 1-on-1 random text and video chat with shared topic matching, dark mode, mobile responsiveness, and zero registration.
 
 ---
@@ -21,19 +21,25 @@
 - **Privacy by Design**: Ephemeral in-memory rolling buffers; conversations are never permanently stored on disk.
 - **Responsive & Modern UI**: Built with high-contrast neo-brutalist & glassmorphic aesthetics, fluid mobile layouts, and a persistent dark mode toggle.
 - **Web Audio Chimes**: Synthesized auditory chimes for incoming messages, matches, and skips.
+- **1-Click Viral Sharing**: Built-in instant share triggers for WhatsApp, X (Twitter), and direct link copy to increase organic reach.
 
 ### 3. 🛡️ Safety & Community Moderation
 - **Strictly 18+ Adult Platform**: Clear community safety guidelines and age verification.
 - **Automated Text Filter**: Real-time screening for profanity, slurs, harassment, phone numbers, and spam floods.
 - **1-Click Report & Block**: Instant incident reporting capturing an ephemeral rolling snapshot for moderation review, and blocking prevents future pairing.
 - **Moderator Dashboard**: In-app moderation portal to review reports and ban guideline violators.
+- **Interactive Feedback System**: Built-in user feedback reporting categorized by features, bugs, and matchmaking quality.
 
 ---
 
-## 🌐 Live Deployment
+## 🌐 Live Deployment & CI/CD Pipeline
 
-Try the app in your browser:
-👉 **[https://stranger-chat-app-omega.vercel.app/](https://stranger-chat-app-omega.vercel.app/)**
+The project is hosted and auto-deployed via GitHub webhook integrations:
+- **Custom Domain**: [https://justrandomchat.com/](https://justrandomchat.com/)
+- **Frontend Client**: Auto-deployed on **Vercel**
+- **Backend Realtime Socket.IO**: Auto-deployed on **Render**
+
+Whenever code is pushed to GitHub, Vercel and Render automatically trigger production builds and deployments.
 
 ---
 
@@ -87,19 +93,21 @@ Try the app in your browser:
  │       └── qa_automation.test.js  # 26-suite automated QA and security test suite
  ├── client/
  │   ├── public/
- │   │   ├── robots.txt             # AI & search engine crawler directives
- │   │   └── sitemap.xml            # Canonical XML sitemap
+ │   │   ├── robots.txt             # AI & search engine crawler directives (justrandomchat.com)
+ │   │   └── sitemap.xml            # Canonical XML sitemap (justrandomchat.com)
  │   ├── index.html                 # SEO metadata, OpenGraph, JSON-LD structured data
  │   └── src/
- │       ├── App.jsx                # Application shell, header, modal orchestrator
+ │       ├── App.jsx                # Application shell, header, modal orchestrator, 1-click share
  │       ├── index.css              # Design system tokens, dark mode, responsive styling
  │       ├── components/
- │       │   ├── Landing/           # Hero, InterestPicker, ProfileSetup, AgeGateModal
- │       │   ├── Chat/              # ChatContainer, MatchHeader, MessageList, VideoGrid, ControlsBar
- │       │   └── Modals/            # ReportModal, BlockModal, FeedbackModal, AdminDashboard, ContentModal
+ │       │   ├── Landing/           # Hero, InterestPicker, ProfileSetup, AgeGateModal, CaptchaCheck
+ │       │   ├── Chat/              # ChatContainer, MatchHeader, MessageList, VideoGrid, ControlsBar, SearchingRadar
+ │       │   ├── Modals/            # ReportModal, BlockModal, FeedbackModal, AdminDashboard, ContentModal
+ │       │   └── Common/            # Toast notifications
  │       └── utils/
  │           ├── soundEffects.js    # Web Audio API synthesizer
- │           └── tagColors.js       # Deterministic tag color mapper
+ │           ├── tagColors.js       # Deterministic tag color mapper
+ │           └── config.js          # Dynamic environment and server URL resolution
  └── package.json                   # Root workspace scripts
 ```
 
@@ -118,3 +126,4 @@ npm --prefix client run build
 
 ## 📄 License
 MIT License.
+
