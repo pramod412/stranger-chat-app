@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Mic, MicOff, Video as VideoIcon, VideoOff, User, Maximize2, Minimize2, Volume2, VolumeX } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Mic, MicOff, Video as VideoIcon, VideoOff, User, Maximize2, Minimize2 } from 'lucide-react';
 import { useWebRTC } from '../../contexts/WebRTCContext';
 import { useSocket } from '../../contexts/SocketContext';
 
@@ -18,99 +18,60 @@ export const VideoGrid = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [remoteMutedByBrowser, setRemoteMutedByBrowser] = useState(false);
-  const [hasRemoteVideoFrames, setHasRemoteVideoFrames] = useState(false);
 
-  // Play helper with browser autoplay policy fallback
-  const attemptPlay = useCallback(async (videoEl, isRemote = false) => {
-    if (!videoEl || !videoEl.srcObject) return;
-    try {
-      await videoEl.play();
-      if (isRemote) {
-        setRemoteMutedByBrowser(false);
-      }
-    } catch (err) {
-      console.warn(`Autoplay note for ${isRemote ? 'remote' : 'local'} video:`, err?.name);
-      if (isRemote && (err?.name === 'NotAllowedError' || err?.name === 'AbortError')) {
-        // Autoplay policy prevented unmuted sound: mute temporarily to allow visual video rendering
-        videoEl.muted = true;
-        try {
-          await videoEl.play();
-          setRemoteMutedByBrowser(true);
-        } catch (e) {
-          console.error('Muted autoplay fallback failed:', e);
-        }
-      }
-    }
-  }, []);
-
-  // Unmute remote video on user interaction if restricted by browser
-  const handleUnmuteRemote = () => {
-    const videoEl = remoteVideoRef.current;
-    if (videoEl) {
-      videoEl.muted = false;
-      videoEl.play().then(() => setRemoteMutedByBrowser(false)).catch(() => {});
-    }
-  };
-
-  // Bind local stream
+  // Bind local stream with direct element playback
   useEffect(() => {
     const videoEl = localVideoRef.current;
     if (videoEl) {
+      videoEl.setAttribute('playsinline', 'true');
+      videoEl.setAttribute('webkit-playsinline', 'true');
+      videoEl.muted = true;
+
       if (localStream) {
         if (videoEl.srcObject !== localStream) {
           videoEl.srcObject = localStream;
         }
-        attemptPlay(videoEl, false);
+        videoEl.play().catch((err) => {
+          console.log('Local video play notice:', err?.name);
+        });
       } else {
         videoEl.srcObject = null;
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
       }
     }
-  }, [localStream, isVideoEnabled, attemptPlay]);
+  }, [localStream, isVideoEnabled]);
 
-  // Bind remote stream and monitor track availability
+  // Bind remote stream with direct element playback
   useEffect(() => {
     const videoEl = remoteVideoRef.current;
     if (videoEl) {
+      videoEl.setAttribute('playsinline', 'true');
+      videoEl.setAttribute('webkit-playsinline', 'true');
+
       if (remoteStream && matchState === 'connected') {
         if (videoEl.srcObject !== remoteStream) {
           videoEl.srcObject = remoteStream;
         }
-        attemptPlay(videoEl, true);
-
-        const videoTracks = remoteStream.getVideoTracks();
-        if (videoTracks.length > 0) {
-          const vTrack = videoTracks[0];
-          setHasRemoteVideoFrames(vTrack.enabled && vTrack.readyState === 'live');
-
-          const handleTrackState = () => {
-            setHasRemoteVideoFrames(vTrack.enabled && vTrack.readyState === 'live');
-          };
-
-          vTrack.addEventListener('unmute', handleTrackState);
-          vTrack.addEventListener('mute', handleTrackState);
-          vTrack.addEventListener('ended', handleTrackState);
-
-          return () => {
-            vTrack.removeEventListener('unmute', handleTrackState);
-            vTrack.removeEventListener('mute', handleTrackState);
-            vTrack.removeEventListener('ended', handleTrackState);
-          };
-        } else {
-          setHasRemoteVideoFrames(false);
-        }
+        videoEl.play().catch((err) => {
+          console.log('Remote video play notice:', err?.name);
+          // Fallback if browser blocked unmuted sound: mute to render video frames
+          videoEl.muted = true;
+          videoEl.play().catch((e) => console.log('Muted retry notice:', e?.name));
+        });
       } else {
         videoEl.srcObject = null;
-        setHasRemoteVideoFrames(false);
+        videoEl.pause();
+        videoEl.removeAttribute('src');
+        videoEl.load();
       }
     }
-  }, [remoteStream, peerMediaState?.videoEnabled, matchState, attemptPlay]);
+  }, [remoteStream, peerMediaState?.videoEnabled, matchState]);
 
   const strangerName = currentMatch?.peerDisplayName || 'Stranger';
-  const isRemoteVideoActive = (hasRemoteVideoFrames || (remoteStream && remoteStream.getVideoTracks().length > 0)) &&
-    peerMediaState?.videoEnabled !== false &&
-    matchState === 'connected';
-  const isLocalVideoActive = localStream && isVideoEnabled;
+  const isRemoteVideoActive = Boolean(remoteStream && peerMediaState?.videoEnabled !== false && matchState === 'connected');
+  const isLocalVideoActive = Boolean(localStream && isVideoEnabled);
 
   return (
     <div
@@ -118,8 +79,8 @@ export const VideoGrid = () => {
       style={{
         maxHeight: isExpanded ? '55vh' : undefined,
         transition: 'max-height 0.25s ease',
-        background: 'var(--bg-surface-muted)',
-        borderBottom: '2px solid var(--border)'
+        background: 'var(--parchment-card)',
+        borderBottom: '2px solid var(--ink)'
       }}
     >
       {/* 1. Remote Stranger Video Feed */}
@@ -129,10 +90,10 @@ export const VideoGrid = () => {
           flex: 1.2,
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 'var(--radius-lg)',
-          border: '2.5px solid var(--border)',
-          boxShadow: 'var(--shadow-sm)',
-          background: '#0E1013'
+          borderRadius: '0px',
+          border: '2px solid var(--ink)',
+          boxShadow: '3px 3px 0px var(--ink)',
+          background: '#1C1A17'
         }}
       >
         {/* Permanent Video Element */}
@@ -140,93 +101,55 @@ export const VideoGrid = () => {
           ref={remoteVideoRef}
           autoPlay
           playsInline
-          onLoadedMetadata={(e) => attemptPlay(e.target, true)}
-          onCanPlay={(e) => attemptPlay(e.target, true)}
-          onPlaying={() => setHasRemoteVideoFrames(true)}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            display: 'block'
+            display: isRemoteVideoActive ? 'block' : 'none'
           }}
         />
 
-        {/* Remote Camera-Off / Connecting Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            padding: '16px',
-            background: 'rgba(20, 22, 26, 0.94)',
-            opacity: isRemoteVideoActive ? 0 : 1,
-            pointerEvents: isRemoteVideoActive ? 'none' : 'auto',
-            transition: 'opacity 0.2s ease',
-            zIndex: 2
-          }}
-        >
+        {/* Remote Camera-Off / Placeholder Overlay */}
+        {!isRemoteVideoActive && (
           <div
             style={{
-              width: '50px',
-              height: '50px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1.5px solid rgba(255, 255, 255, 0.25)',
-              borderRadius: 'var(--radius-pill)',
+              width: '100%',
+              height: '100%',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 8px auto',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-            }}
-          >
-            <User size={26} color="#FFFFFF" />
-          </div>
-          <p style={{ fontSize: '0.8rem', margin: 0, fontFamily: 'var(--font-sans)', opacity: 0.9, fontWeight: 500 }}>
-            {currentMatch && matchState === 'connected'
-              ? `${strangerName}'s Camera is Off`
-              : 'Connecting to Stranger Video...'}
-          </p>
-        </div>
-
-        {/* Unmute Prompt if browser blocked initial autoplay audio */}
-        {remoteMutedByBrowser && isRemoteVideoActive && (
-          <button
-            type="button"
-            onClick={handleUnmuteRemote}
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              background: 'var(--accent)',
               color: '#FFFFFF',
-              border: '2px solid #000000',
-              borderRadius: 'var(--radius-pill)',
-              padding: '4px 10px',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              zIndex: 6,
-              boxShadow: 'var(--shadow-sm)'
+              padding: '16px',
+              background: 'rgba(28, 26, 23, 0.94)'
             }}
           >
-            <VolumeX size={13} />
-            <span>Click to Unmute</span>
-          </button>
+            <div
+              style={{
+                width: '50px',
+                height: '50px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 8px auto'
+              }}
+            >
+              <User size={26} color="#FFFFFF" />
+            </div>
+            <p style={{ fontSize: '0.8rem', margin: 0, fontFamily: 'var(--font-heading)', opacity: 0.9 }}>
+              {currentMatch && matchState === 'connected' ? `${strangerName}'s Camera is Off` : 'Waiting for Stranger Video...'}
+            </p>
+          </div>
         )}
 
         {/* Remote Identifier Badge */}
-        <div className="video-badge-tag" style={{ zIndex: 5 }}>
-          <span style={{ color: isRemoteVideoActive ? 'var(--teal)' : 'var(--accent)', fontWeight: 900 }}>●</span>
+        <div className="video-badge-tag">
+          <span style={{ color: isRemoteVideoActive ? 'var(--sage)' : 'var(--rust-clay)', fontWeight: 900 }}>●</span>
           <span>{strangerName}</span>
           {peerMediaState?.audioEnabled === false && (
-            <MicOff size={12} color="var(--accent)" style={{ marginLeft: '2px' }} />
+            <MicOff size={12} color="var(--rust-clay)" style={{ marginLeft: '2px' }} />
           )}
         </div>
 
@@ -238,17 +161,17 @@ export const VideoGrid = () => {
             position: 'absolute',
             top: '10px',
             right: '10px',
-            background: 'rgba(20, 22, 26, 0.85)',
-            border: '1.5px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: 'var(--radius-pill)',
-            color: '#FFFFFF',
-            width: '32px',
-            height: '32px',
+            background: 'var(--parchment-card)',
+            border: '1.5px solid var(--ink)',
+            color: 'var(--ink)',
+            width: '30px',
+            height: '30px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            zIndex: 6
+            zIndex: 5,
+            boxShadow: '1px 1px 0px var(--ink)'
           }}
           title={isExpanded ? 'Compact video view' : 'Expand video view'}
           aria-label={isExpanded ? 'Compact video view' : 'Expand video view'}
@@ -264,10 +187,10 @@ export const VideoGrid = () => {
           flex: 1,
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: 'var(--radius-lg)',
-          border: '2.5px solid var(--border)',
-          boxShadow: 'var(--shadow-sm)',
-          background: '#0E1013'
+          borderRadius: '0px',
+          border: '2px solid var(--ink)',
+          boxShadow: '3px 3px 0px var(--ink)',
+          background: '#1C1A17'
         }}
       >
         {/* Permanent Local Video Element */}
@@ -276,70 +199,68 @@ export const VideoGrid = () => {
           autoPlay
           playsInline
           muted
-          onLoadedMetadata={(e) => attemptPlay(e.target, false)}
-          onCanPlay={(e) => attemptPlay(e.target, false)}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
             transform: 'scaleX(-1)', // Mirror local view
-            display: 'block'
+            display: isLocalVideoActive ? 'block' : 'none'
           }}
         />
 
         {/* Local Camera-Off Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#FFFFFF',
-            padding: '16px',
-            background: 'rgba(20, 22, 26, 0.94)',
-            opacity: isLocalVideoActive ? 0 : 1,
-            pointerEvents: isLocalVideoActive ? 'none' : 'auto',
-            transition: 'opacity 0.2s ease',
-            zIndex: 2
-          }}
-        >
+        {!isLocalVideoActive && (
           <div
             style={{
-              width: '50px',
-              height: '50px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1.5px solid rgba(255, 255, 255, 0.25)',
-              borderRadius: 'var(--radius-pill)',
+              width: '100%',
+              height: '100%',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 8px auto',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              color: '#FFFFFF',
+              padding: '16px',
+              background: 'rgba(28, 26, 23, 0.94)'
             }}
           >
-            <User size={26} color="#FFFFFF" />
+            <div
+              style={{
+                width: '50px',
+                height: '50px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 8px auto'
+              }}
+            >
+              <User size={26} color="#FFFFFF" />
+            </div>
+            <p style={{ fontSize: '0.8rem', margin: 0, fontFamily: 'var(--font-heading)', opacity: 0.9 }}>
+              Your Camera is Off
+            </p>
           </div>
-          <p style={{ fontSize: '0.8rem', margin: 0, fontFamily: 'var(--font-sans)', opacity: 0.9, fontWeight: 500 }}>
-            Your Camera is Off
-          </p>
-        </div>
+        )}
 
         {/* Local Identifier Badge */}
-        <div className="video-badge-tag" style={{ zIndex: 5 }}>
-          <span style={{ color: isLocalVideoActive ? 'var(--teal)' : 'var(--accent)', fontWeight: 900 }}>●</span>
+        <div className="video-badge-tag">
+          <span style={{ color: isLocalVideoActive ? 'var(--sage)' : 'var(--rust-clay)', fontWeight: 900 }}>●</span>
           <span>You</span>
         </div>
 
         {/* Local Ergonomic Control Overlay */}
-        <div className="video-controls-overlay" style={{ zIndex: 6 }}>
+        <div className="video-controls-overlay">
           <button
             type="button"
             onClick={toggleAudio}
             className={`video-action-btn ${!isAudioEnabled ? 'active-off' : ''}`}
             style={{
-              background: isAudioEnabled ? 'var(--teal)' : 'var(--text-muted)'
+              background: isAudioEnabled ? 'var(--sage)' : 'var(--rust-clay)',
+              color: '#FFFFFF',
+              border: '1.5px solid var(--ink)',
+              boxShadow: '1px 1px 0px var(--ink)',
+              borderRadius: '0px'
             }}
             title={isAudioEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
             aria-label={isAudioEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
@@ -352,7 +273,11 @@ export const VideoGrid = () => {
             onClick={toggleVideo}
             className={`video-action-btn ${!isVideoEnabled ? 'active-off' : ''}`}
             style={{
-              background: isVideoEnabled ? 'var(--purple)' : 'var(--text-muted)'
+              background: isVideoEnabled ? 'var(--rust-clay)' : 'var(--putty-bg)',
+              color: '#FFFFFF',
+              border: '1.5px solid var(--ink)',
+              boxShadow: '1px 1px 0px var(--ink)',
+              borderRadius: '0px'
             }}
             title={isVideoEnabled ? 'Turn Off Camera' : 'Turn On Camera'}
             aria-label={isVideoEnabled ? 'Turn Off Camera' : 'Turn On Camera'}
@@ -365,4 +290,3 @@ export const VideoGrid = () => {
   );
 };
 export default VideoGrid;
-

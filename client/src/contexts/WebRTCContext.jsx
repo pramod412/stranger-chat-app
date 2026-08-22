@@ -3,22 +3,11 @@ import { useSocket } from './SocketContext';
 
 const WebRTCContext = createContext(null);
 
-// International Standard STUN server pool with multiple global providers
 const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    { urls: 'stun:stun.services.mozilla.com' },
-    { urls: 'stun:stun.nextcloud.com:443' }
-  ],
-  iceCandidatePoolSize: 10,
-  bundlePolicy: 'max-bundle',
-  rtcpMuxPolicy: 'require'
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ]
 };
 
 export const WebRTCProvider = ({ children }) => {
@@ -43,7 +32,7 @@ export const WebRTCProvider = ({ children }) => {
     activeMatchIdRef.current = currentMatch?.id || null;
   }, [currentMatch]);
 
-  // Virtual canvas stream fallback for environments without physical camera
+  // Virtual canvas stream fallback for environments without physical camera or permission restrictions
   const createVirtualStream = useCallback(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 640;
@@ -59,7 +48,7 @@ export const WebRTCProvider = ({ children }) => {
       ctx.fillStyle = '#00f2fe';
       ctx.font = '24px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('⚡ Just Random Chat Video', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillText('⚡ Stranger Chat Video Stream', canvas.width / 2, canvas.height / 2 - 20);
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '16px Inter, sans-serif';
@@ -87,7 +76,7 @@ export const WebRTCProvider = ({ children }) => {
     return canvasStream;
   }, []);
 
-  // Ensure local camera/audio stream is active
+  // Ensure local camera/audio stream is active with mobile-friendly constraints
   const ensureLocalStream = useCallback(async () => {
     if (localStreamRef.current && localStreamRef.current.active) {
       const videoTrack = localStreamRef.current.getVideoTracks()[0];
@@ -103,17 +92,8 @@ export const WebRTCProvider = ({ children }) => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              width: { ideal: 640, max: 1280 },
-              height: { ideal: 480, max: 720 },
-              facingMode: 'user',
-              frameRate: { ideal: 30, max: 30 }
-            },
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true
-            }
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+            audio: true
           });
         } catch (err) {
           console.warn('Physical camera unavailable or permission denied, creating virtual fallback feed', err);
@@ -188,83 +168,7 @@ export const WebRTCProvider = ({ children }) => {
     closePeerConnection();
   }, [closePeerConnection]);
 
-  // Setup PeerConnection with tracks, transceivers, and handlers
-  const createConfiguredPeerConnection = useCallback((sessionMatchId, stream) => {
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-
-    // Add local tracks if available
-    if (stream) {
-      stream.getTracks().forEach((track) => {
-        pc.addTrack(track, stream);
-      });
-    }
-
-    // Ensure transceivers exist with sendrecv direction for bidirectional media
-    const videoSender = pc.getSenders().find((s) => s.track && s.track.kind === 'video');
-    if (!videoSender) {
-      try {
-        pc.addTransceiver('video', { direction: 'sendrecv' });
-      } catch (e) {}
-    }
-
-    const audioSender = pc.getSenders().find((s) => s.track && s.track.kind === 'audio');
-    if (!audioSender) {
-      try {
-        pc.addTransceiver('audio', { direction: 'sendrecv' });
-      } catch (e) {}
-    }
-
-    // ICE Candidate handler
-    pc.onicecandidate = (event) => {
-      if (event.candidate && activeMatchIdRef.current === sessionMatchId) {
-        socket?.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: sessionMatchId });
-      }
-    };
-
-    // Track handler with live reactive stream reproduction for React state
-    pc.ontrack = (event) => {
-      if (activeMatchIdRef.current !== sessionMatchId) return;
-
-      let currentRemote = remoteStreamRef.current;
-      if (!currentRemote) {
-        currentRemote = event.streams?.[0] || new MediaStream();
-      }
-
-      if (event.track && !currentRemote.getTracks().some((t) => t.id === event.track.id)) {
-        currentRemote.addTrack(event.track);
-      }
-
-      const syncRemoteState = () => {
-        if (activeMatchIdRef.current !== sessionMatchId) return;
-        const freshStream = new MediaStream(currentRemote.getTracks());
-        remoteStreamRef.current = freshStream;
-        setRemoteStream(freshStream);
-      };
-
-      if (event.track) {
-        event.track.onunmute = syncRemoteState;
-        event.track.onmute = syncRemoteState;
-        event.track.onended = syncRemoteState;
-      }
-
-      syncRemoteState();
-    };
-
-    // ICE connection state monitor
-    pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        if (pc.iceConnectionState === 'failed') {
-          try {
-            pc.restartIce();
-          } catch (e) {}
-        }
-      }
-    };
-
-    return pc;
-  }, [socket]);
-
-  // Initialize WebRTC session for newly matched stranger
+  // Initialize WebRTC session for matched stranger
   const initWebRTCSession = useCallback(async () => {
     if (!socket || !videoMode || matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
@@ -284,8 +188,13 @@ export const WebRTCProvider = ({ children }) => {
         return;
       }
 
-      const pc = createConfiguredPeerConnection(sessionMatchId, stream);
+      const pc = new RTCPeerConnection(RTC_CONFIG);
       pcRef.current = pc;
+
+      // Add local tracks to peer connection
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+      });
 
       // Broadcast local initial media state to peer
       socket.emit('webrtc:media-state', {
@@ -294,7 +203,35 @@ export const WebRTCProvider = ({ children }) => {
         matchId: sessionMatchId
       });
 
-      // If initiator, dispatch SDP offer
+      // ICE Candidate handler
+      pc.onicecandidate = (event) => {
+        if (event.candidate && activeMatchIdRef.current === sessionMatchId) {
+          socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: sessionMatchId });
+        }
+      };
+
+      // Inbound track handler
+      pc.ontrack = (event) => {
+        if (activeMatchIdRef.current !== sessionMatchId) return;
+        let inboundStream = event.streams?.[0] || (event.track ? new MediaStream([event.track]) : null);
+        if (inboundStream) {
+          remoteStreamRef.current = inboundStream;
+          setRemoteStream(inboundStream);
+        }
+      };
+
+      // Connection State Monitor
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+          if (remoteStreamRef.current) {
+            remoteStreamRef.current.getTracks().forEach((t) => t.stop());
+            remoteStreamRef.current = null;
+          }
+          setRemoteStream(null);
+        }
+      };
+
+      // If initiator, create and dispatch SDP offer
       if (currentMatch.isInitiator) {
         const offer = await pc.createOffer({
           offerToReceiveAudio: true,
@@ -309,9 +246,9 @@ export const WebRTCProvider = ({ children }) => {
     } finally {
       isSettingUpRef.current = false;
     }
-  }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection, createConfiguredPeerConnection, isVideoEnabled, isAudioEnabled]);
+  }, [socket, videoMode, matchState, currentMatch, ensureLocalStream, closePeerConnection, isVideoEnabled, isAudioEnabled]);
 
-  // Clean termination or initialization on matchState/match change
+  // Clean termination whenever matchState changes or when currentMatch resets
   useEffect(() => {
     if (matchState !== 'connected' || !currentMatch) {
       closePeerConnection();
@@ -329,10 +266,47 @@ export const WebRTCProvider = ({ children }) => {
         return;
       }
 
+      // Automatically enable video mode if peer called with video
+      if (!videoMode) {
+        setVideoMode(true);
+      }
+
       try {
         const stream = await ensureLocalStream();
-        if (!pcRef.current || pcRef.current.signalingState === 'closed') {
-          pcRef.current = createConfiguredPeerConnection(activeMatchIdRef.current, stream);
+        if (!pcRef.current) {
+          const pc = new RTCPeerConnection(RTC_CONFIG);
+          pcRef.current = pc;
+
+          if (stream) {
+            stream.getTracks().forEach((track) => {
+              pc.addTrack(track, stream);
+            });
+          }
+
+          pc.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit('webrtc:ice-candidate', { candidate: event.candidate, matchId: activeMatchIdRef.current });
+            }
+          };
+
+          pc.ontrack = (event) => {
+            if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
+            let inboundStream = event.streams?.[0] || (event.track ? new MediaStream([event.track]) : null);
+            if (inboundStream) {
+              remoteStreamRef.current = inboundStream;
+              setRemoteStream(inboundStream);
+            }
+          };
+
+          pc.oniceconnectionstatechange = () => {
+            if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+              if (remoteStreamRef.current) {
+                remoteStreamRef.current.getTracks().forEach((t) => t.stop());
+                remoteStreamRef.current = null;
+              }
+              setRemoteStream(null);
+            }
+          };
         }
 
         const pc = pcRef.current;
@@ -351,13 +325,6 @@ export const WebRTCProvider = ({ children }) => {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit('webrtc:answer', { answer, matchId: activeMatchIdRef.current });
-
-        // Inform peer of our media states
-        socket.emit('webrtc:media-state', {
-          videoEnabled: isVideoEnabled,
-          audioEnabled: isAudioEnabled,
-          matchId: activeMatchIdRef.current
-        });
       } catch (err) {
         console.error('Error handling WebRTC offer:', err);
       }
@@ -365,20 +332,17 @@ export const WebRTCProvider = ({ children }) => {
 
     const handleAnswer = async ({ answer, matchId }) => {
       if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
-      if (!pcRef.current || pcRef.current.signalingState === 'closed') return;
+      if (!pcRef.current) return;
       try {
-        const pc = pcRef.current;
-        if (pc.signalingState === 'have-local-offer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
 
-          // Flush queued ICE candidates
-          while (iceCandidatesQueue.current.length > 0) {
-            const cand = iceCandidatesQueue.current.shift();
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(cand));
-            } catch (e) {
-              console.warn('Queued ICE candidate note:', e);
-            }
+        // Flush queued ICE candidates
+        while (iceCandidatesQueue.current.length > 0) {
+          const cand = iceCandidatesQueue.current.shift();
+          try {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
+          } catch (e) {
+            console.warn('Queued ICE candidate note:', e);
           }
         }
       } catch (err) {
@@ -388,9 +352,9 @@ export const WebRTCProvider = ({ children }) => {
 
     const handleCandidate = async ({ candidate, matchId }) => {
       if (matchId && activeMatchIdRef.current && matchId !== activeMatchIdRef.current) return;
-      if (!candidate || !candidate.candidate) return;
+      if (!candidate) return;
       const pc = pcRef.current;
-      if (pc && pc.remoteDescription && pc.remoteDescription.type && pc.signalingState !== 'closed') {
+      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (err) {
@@ -429,7 +393,7 @@ export const WebRTCProvider = ({ children }) => {
       socket.off('webrtc:peer-media-state', handlePeerMediaState);
       socket.off('video:peer-toggle', handlePeerVideoToggle);
     };
-  }, [socket, videoMode, ensureLocalStream, createConfiguredPeerConnection, isVideoEnabled, isAudioEnabled]);
+  }, [socket, videoMode, ensureLocalStream]);
 
   // Toggle Video / Camera ON/OFF
   const toggleVideo = useCallback(() => {
@@ -496,4 +460,3 @@ export const WebRTCProvider = ({ children }) => {
 
 export const useWebRTC = () => useContext(WebRTCContext);
 export default WebRTCContext;
-
